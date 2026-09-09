@@ -133,6 +133,7 @@ def append_to_csv(
     data: dict[str, Any] | list[dict[str, Any]],
     encoding: str = "utf-8",
     columns: list[str] | None = None,
+    strict_suffix: bool = True,
 ) -> Path:
     """
     Append results to CSV file (resume from breakpoint scenario)
