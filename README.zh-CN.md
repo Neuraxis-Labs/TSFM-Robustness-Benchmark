@@ -25,6 +25,8 @@ TSFM 鲁棒性基准测试是一种系统化的测试工具, 旨在检验时间�
    - `results.py`: 测试结果管理器 (批量缓冲/持久化).
    - `resume.py`: 策略控制器 (限流判断/断点续跑).
    - `timecho.py`: API 交互封装.
+- `env/`: 环境变量配置目录，供 `config/settings.py` 通过 load_dotenv() 加载其中的环境文件
+   - `.env.example`: 环境变量示例文件.
 - `src/`: **SDK 源码目录**
   - `neuraxis_testkit/`: 测试工具箱
     - `log/`: 日志管理模块

@@ -24,6 +24,8 @@ The project follows a standard layered architecture:
   - `results.py`: Test result manager (batch buffering/persistence).
   - `resume.py`: Strategy controller (rate-limiting/checkpoint resume).
   - `timecho.py`: API interaction wrapper.
+- `env/`: Directory for environment variable configs, loaded by settings.py via load_dotenv()
+   - `.env.example`: Example environment variables file.
 - `src/`: **SDK source directory**
   - `neuraxis_testkit/`: Test toolkit
     - `log/`: Logging management module.
