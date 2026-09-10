@@ -39,7 +39,7 @@ def log_execution(
     level_upper = level.upper()
     if level_upper not in VALID_LEVELS:
         raise ValueError(f"Invalid log level: '{level}'. Valid options: {', '.join(sorted(VALID_LEVELS))}")
-    
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):

@@ -116,7 +116,7 @@ def run_forecast_experiments(df_history, gt_normal, gt_drift):
                     results[scenario][model_id][L] = {"mae": None, "step_mae": None, "pred_len": 0}
 
         print()
-    
+
     return results
 
 

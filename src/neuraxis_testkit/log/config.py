@@ -14,7 +14,6 @@ Responsibilities:
     5. dictConfig assembly + filter wiring + optional asynchronous queue (bounded, drops on full)
     6. Two-stage file naming: `set_log_file()` for pytest_configure hot‑replacement of log file
     7. Cross‑platform path handling: forces POSIX style (/) to avoid YAML escaping issues
-
 """
 from __future__ import annotations
 

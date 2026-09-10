@@ -43,7 +43,7 @@ np.random.seed(42)
 def generate_synthetic_data(total_points: int = 576) -> pd.DataFrame:
     """
     Generate synthetic time-series data (trend + seasonality + noise).
-    
+
     Args:
         total_points: Total number of data points, default 576 (512 max input + 64 forecast).
 

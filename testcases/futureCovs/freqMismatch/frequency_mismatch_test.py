@@ -108,7 +108,7 @@ def generate_frequency_mismatch_data(
 
     futures = {}
     mode_configs = {}
-    
+
     for period in eval_periods:
         # Period description
         if period == train_period:
@@ -147,7 +147,7 @@ def generate_frequency_mismatch_data(
         "time_future": time_future,
         "train_period": train_period
     }
-    
+
     return df_history, futures, mode_configs, time_info
 
 
@@ -202,7 +202,7 @@ def run_frequency_mismatch_test():
     for model_id in models:
         print(f"\n  Model: {model_id}")
         print("-" * 70)
-        
+
         for mode_name in futures.keys():
             gt = futures[mode_name]
             cfg = mode_configs[mode_name]
@@ -257,7 +257,7 @@ def run_frequency_mismatch_test():
     print(f"\n{'='*90}")
     print("C5 Frequency Mismatch - Summary Results")
     print(f"{'='*90}")
-    
+
     # Table header
     header = f"{'Model':<12s} | {'Mode':<25s} | {'Period':>6s} | {'MAE':>8s} | {'MAE_16':>8s} | {'MAE_32':>8s} | {'RMSE':>8s}"
     print(header)

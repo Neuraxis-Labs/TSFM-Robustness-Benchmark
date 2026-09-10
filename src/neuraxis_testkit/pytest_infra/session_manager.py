@@ -8,7 +8,6 @@ Design notes:
   2. Under xdist multiprocessing: each worker holds the lock for a short time (only wrapping the few lines of file writing).
   3. On lock acquisition failure, degrade to lock-free mode and issue a warning — risk of recording result loss is acceptable over interrupting tests.
   4. Follows context manager protocol to ensure release on any exception path across platforms.
-
 """
 from __future__ import annotations
 
