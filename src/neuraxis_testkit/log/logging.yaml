@@ -1,0 +1,74 @@
+# ============================================================================
+# neuraxis_testkit logging configuration (logging.config.dictConfig, version 1)
+# ----------------------------------------------------------------------------
+# Industry common practice: YAML + python official dictConfig
+#   - ${VAR}          : resolved from environment variables (config/settings.py already loads .env)
+#   - ${VAR:default}  : default value when environment variable is missing
+#   - ${LOG_FILE_PATH}: dynamic file name injected by log/config.py (date + xdist worker suffix)
+# Override priority: env/.env.test environment variables > default values in this file
+# External config override: environment variable LOG_CONFIG_FILE=config/logging.yaml
+# ============================================================================
+version: 1
+disable_existing_loggers: false
+
+# ---------------------------------------------------------------------------
+# Formatters
+# ---------------------------------------------------------------------------
+formatters:
+  standard:                       # File output (includes process/thread, suitable for concurrency)
+    format: "${LOG_FORMAT}"
+    datefmt: "${LOG_DATE_FORMAT}"
+  simple:                         # Console / pytest log_cli output
+    format: "${LOG_SIMPLE_FORMAT}"
+    datefmt: "${LOG_DATE_FORMAT}"
+  colored:                        # Terminal color (only for standalone runs)
+    (): neuraxis_testkit.log.formatters.ColoredFormatter
+    fmt: "${LOG_FORMAT}"
+    datefmt: "${LOG_DATE_FORMAT}"
+    use_color: ${LOG_USE_COLOR}
+
+# ---------------------------------------------------------------------------
+# Handlers (file / file_timed are mutually exclusive, chosen by LOG_ROTATION, config.py automatically prunes)
+# ---------------------------------------------------------------------------
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: 0
+    formatter: colored
+    stream: ext://sys.stderr
+
+  file:                           # Rotate by size (default)
+    class: logging.handlers.RotatingFileHandler
+    level: 0
+    formatter: standard
+    filename: '${LOG_FILE_PATH}'
+    encoding: "${LOG_ENCODING}"
+    maxBytes: ${LOG_MAX_BYTES}
+    backupCount: ${LOG_BACKUP_COUNT}
+    delay: true                   # File created only on first log write
+
+  file_timed:                     # Rotate by time (enabled when LOG_ROTATION=time)
+    class: logging.handlers.TimedRotatingFileHandler
+    level: "${LOG_LEVEL:INFO}"
+    formatter: standard
+    filename: '${LOG_FILE_PATH}'
+    encoding: "${LOG_ENCODING}"
+    when: "${LOG_WHEN}"
+    interval: "${LOG_INTERVAL}"
+    backupCount: ${LOG_BACKUP_COUNT}
+    delay: true
+
+# ---------------------------------------------------------------------------
+# Third-party library noise reduction (alternative to the original IGNORED_LOGGERS via YAML)
+# ---------------------------------------------------------------------------
+loggers:
+  urllib3: {level: WARNING}
+  requests: {level: WARNING}
+  asyncio: {level: WARNING}
+
+# ---------------------------------------------------------------------------
+# Root logger: business modules use get_logger(__name__), records propagate up to here
+# ---------------------------------------------------------------------------
+root:
+  level: "${LOG_LEVEL}"
+  handlers: [console, file, file_timed]   # All three declared; pruning logic ensures file/file_timed are mutually exclusive

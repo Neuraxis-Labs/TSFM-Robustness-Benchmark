@@ -3,71 +3,44 @@
 """
 neuraxis_testkit/log/formatters.py -- Logging Formatters
 
-Contains formatters for colored console output, etc.
+ColoredFormatter is a custom factory for dictConfig.
+See logging.yaml: formatters.colored."(): neuraxis_testkit.log.formatters.ColoredFormatter".
+dictConfig calls it with kwargs: ColoredFormatter(fmt=..., datefmt=..., use_color=...),
+so __init__ signature must be compatible with parameters declared in YAML.
 """
 
-import logging
+import os, sys, logging
 
-from neuraxis_testkit.log.config import LOG_FORMAT, LOG_DATE_FORMAT, LOG_USE_COLOR
-
+from neuraxis_testkit.log.config import LOG_FORMAT, LOG_DATE_FORMAT
 
 class ColoredFormatter(logging.Formatter):
-    """Log formatter with colored output."""
-
+    """
+    ANSI colored formatter for terminal output (console only).
+    """
     COLORS = {
-        'TRACE': '\033[36m',      # Cyan
-        'DEBUG': '\033[34m',      # Blue
-        'INFO': '\033[32m',       # Green
-        'WARNING': '\033[33m',    # Yellow
-        'ERROR': '\033[31m',      # Red
-        'CRITICAL': '\033[35m',   # Purple/Magenta
+        'TRACE':    '\033[90m',   # bright gray
+        'DEBUG':    '\033[36m',   # cyan
+        'INFO':     '\033[32m',   # green
+        'WARNING':  '\033[33m',   # yellow
+        'ERROR':    '\033[31m',   # red
+        'CRITICAL': '\033[35m',   # magenta
     }
     RESET = '\033[0m'
 
-    def __init__(self, fmt: str = None, datefmt: str = None, use_color: bool = True):
-        super().__init__(fmt or LOG_FORMAT, datefmt or LOG_DATE_FORMAT)
-        self.use_color = use_color
+    def __init__(self, fmt: str | None = None, datefmt: str | None = None, use_color: bool | str = True):
+        # use_color passed from dictConfig may be a string "true"/"false".
+        super().__init__(fmt=fmt or LOG_FORMAT, datefmt=datefmt or LOG_DATE_FORMAT)
+        self.use_color = use_color if isinstance(use_color, bool) else str(use_color).lower() in ("true", "1", "yes")
+        if self.use_color and sys.platform == "win32":
+            os.system("")   # Enable ANSI VT processing for legacy conhost (Win10+ Terminal no need, idempotent harmless)
 
     def format(self, record: logging.LogRecord) -> str:
         """Formats a log record."""
-        if self.use_color and record.levelname in self.COLORS:
-            # Save original levelname
-            original_levelname = record.levelname
-            # Apply color
-            record.levelname = f"{self.COLORS[record.levelname]}{record.levelname}{self.RESET}"
-            formatted = super().format(record)
-            # Restore original levelname
-            record.levelname = original_levelname
-            return formatted
-        return super().format(record)
+        message = super().format(record)
+        if not self.use_color:
+            return message
+        color = self.COLORS.get(record.levelname)
+        return message if color is None else f"{color}{message}{self.RESET}"
 
 
-def create_console_formatter(use_color: bool = None) -> logging.Formatter:
-    """
-    Creates a console log formatter.
-
-    Args:
-        use_color: Whether to use color. If None, uses the global configuration.
-
-    Returns:
-        An instance of logging.Formatter.
-    """
-    if use_color is None:
-        use_color = LOG_USE_COLOR
-
-    if use_color:
-        return ColoredFormatter(LOG_FORMAT, LOG_DATE_FORMAT)
-    else:
-        return logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT)
-
-
-def create_file_formatter() -> logging.Formatter:
-    """Creates a file log formatter."""
-    return logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT)
-
-
-__all__ = [
-    'ColoredFormatter',
-    'create_console_formatter',
-    'create_file_formatter',
-]
+__all__ = ["ColoredFormatter"]

@@ -1,59 +1,29 @@
 """
 neuraxis_testkit/log - Neuraxis TestKit Logging Module
 
-Provides a concise logging interface and hides internal implementation details.
+A thin wrapper on top of standard logging + logging.yaml (dictConfig),
+hiding configuration loading details and exposing only a unified logging interface.
 
 Usage Examples:
-    from neuraxis_testkit.log import get_logger, setup_logging
+    from neuraxis_testkit.log import get_logger
 
     logger = get_logger(__name__)
     logger.info("Hello World")
+    logger.trace("TRACE Level Log")   # Need logger.setLevel(LEVEL_MAP['TRACE'])
 """
-import threading
-from .core import Logger
-from .decorators import log_execution, log_time
+from .config import setup_logging, get_log_file_path
 from .context import LogLevelContext
+from .core import get_logger, get_default_logger
+from .decorators import log_execution, log_time
 
-# Convenience Functions
-_default_logger_lock = threading.Lock()
-_default_logger: Logger | None = None
-
-
-def get_logger(name: str = "neuraxis", **kwargs) -> Logger:
-    """
-    Get a logger instance. Recommended to use module name for 'name'.
-
-    Args:
-        name: Name of the logger. It is recommended to use the module name.
-        **kwargs: Optional configuration parameters to override defaults.
-
-    Returns:
-        Logger instance.
-
-    Example:
-        >>> logger = get_logger('testcases.futureCovs.dirtyData.test_dirty')
-    """
-    return Logger.get_logger(name, **kwargs)
-
-def get_default_logger() -> Logger:
-    """Get a default global logger for quick scripts."""
-    global _default_logger
-    with _default_logger_lock:
-        if _default_logger is None:
-            _default_logger = get_logger('default')
-    return _default_logger
-
-def flush_all_logs():
-    """Forces all log handlers to flush immediately."""
-    Logger.flush()
 
 __all__ = [
     # Core
-    'Logger',
     # Functions
     'get_logger',
     'get_default_logger',
-    'flush_all_logs',
+    'setup_logging',
+    'get_log_file_path',
     # Decorators
     'log_execution',
     'log_time',

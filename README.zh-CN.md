@@ -36,7 +36,7 @@ TSFM 鲁棒性基准测试是一种系统化的测试工具, 旨在检验时间�
       - `decorators.py`: 装饰器 (`log_execution`, `log_time`).
       - `filters.py`: 日志过滤器 (`ModuleLevelFilter`, `IgnoredLoggerFilter`).
       - `formatters.py`: 日志格式化器 (`ColoredFormatter`).
-      - `handlers.py`: Handler 管理.
+      - `logging.yaml`: 日志配置.
     - `pytest_infra/`: pytest 基础设施层 【开发中 / WIP】— 提供测试夹具、清单驱动参数化与断点续跑等基础设施封装. 当前处于调试完善阶段, 接口暂不稳定, 暂不建议外部直接依赖; 内部模块结构将在接口定稿后于文档中披露.
     - `utils/`: 基础工具层
       - `concurrent.py`: 并发控制与进程协同模块(内部桥接模块).

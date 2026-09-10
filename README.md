@@ -35,7 +35,7 @@ The project follows a standard layered architecture:
       - `decorators.py`: Decorators (`log_execution`, `log_time`).
       - `filters.py`: Log filters (`ModuleLevelFilter`, `IgnoredLoggerFilter`).
       - `formatters.py`: Log formatters (`ColoredFormatter`).
-      - `handlers.py`: Handler management.
+      - `logging.yaml`: Handler management.
     - `pytest_infra/`: pytest infrastructure layer 【WIP】— Provides encapsulated fixtures, manifest-driven parameterization, and resumable-execution infrastructure. Currently under active development and debugging; interfaces are not yet stable and direct external dependency is discouraged. The internal module layout will be documented once the interfaces are finalized.
     - `utils/`: Basic utilities layer
       - `concurrent.py`: Concurrency control and process coordination module (internal bridge module).

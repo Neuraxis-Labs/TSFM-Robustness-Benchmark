@@ -5,17 +5,16 @@ neuraxis_testkit/log/decorators.py -- Logging Decorators
 
 Provides decorators for function execution logging and execution time tracking.
 """
+from __future__ import annotations
 
-import time
+import time, logging
 from functools import wraps
 from typing import Callable
-
-from neuraxis_testkit.log.core import Logger
 from neuraxis_testkit.log.config import VALID_LEVELS
-
+from neuraxis_testkit.log.core import get_default_logger
 
 def log_execution(
-    logger: Logger | None = None,
+    logger: logging.Logger | None = None,
     level: str = 'INFO',
     log_args: bool = False,
     log_result: bool = False,
@@ -36,8 +35,7 @@ def log_execution(
         ... def my_function(x, y):
         ...     return x + y
     """
-    from neuraxis_testkit.log import get_default_logger
-    
+
     level_upper = level.upper()
     if level_upper not in VALID_LEVELS:
         raise ValueError(f"Invalid log level: '{level}'. Valid options: {', '.join(sorted(VALID_LEVELS))}")
@@ -46,25 +44,15 @@ def log_execution(
         @wraps(func)
         def wrapper(*args, **kwargs):
             lg = logger or get_default_logger()
+            # TRACE already registered by config.py on standard Logger, getattr hits directly.
             log_method = getattr(lg, level_upper.lower(), lg.info)
-
-            msg = f"Starting execution: {func.__name__}"
-            if log_args:
-                args_str = ', '.join(repr(a) for a in args)
-                kwargs_str = ', '.join(f"{k}={v!r}" for k, v in kwargs.items())
-                params = ', '.join(filter(None, [args_str, kwargs_str]))
-                if params:
-                    msg += f"({params})"
-            log_method(msg)
-
+            extra = f" args={args!r}, kwargs={kwargs!r}" if log_args else ""
+            log_method(f"Starting execution: {func.__name__}{extra}")
             try:
                 result = func(*args, **kwargs)
-                msg = f"Execution completed: {func.__name__}"
-                if log_result:
-                    msg += f" -> {result!r}"
-                log_method(msg)
+                tail = f" result={result!r}" if log_result else ""
+                log_method(f"Execution completed: {func.__name__}{tail}")
                 return result
-
             except Exception as exp:
                 if log_exception:
                     lg.exception(f"Execution exception: {func.__name__} - {exp}")
@@ -74,7 +62,7 @@ def log_execution(
     return decorator
 
 
-def log_time(logger: Logger | None = None, level: str = 'INFO'):
+def log_time(logger: logging.Logger | None = None, level: str = 'INFO'):
     """
     Decorator for tracking and logging function execution time.
 
@@ -87,8 +75,6 @@ def log_time(logger: Logger | None = None, level: str = 'INFO'):
         ... def slow_function():
         ...     time.sleep(1)
     """
-    from neuraxis_testkit.log import get_default_logger
-
     level_upper = level.upper()
     if level_upper not in VALID_LEVELS:
         raise ValueError(f"Invalid log level: '{level}'. Valid options: {', '.join(sorted(VALID_LEVELS))}")
