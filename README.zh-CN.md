@@ -37,7 +37,14 @@ TSFM 鲁棒性基准测试是一种系统化的测试工具, 旨在检验时间�
       - `filters.py`: 日志过滤器 (`ModuleLevelFilter`, `IgnoredLoggerFilter`).
       - `formatters.py`: 日志格式化器 (`ColoredFormatter`).
       - `logging.yaml`: 日志配置.
-    - `pytest_infra/`: pytest 基础设施层 【开发中 / WIP】— 提供测试夹具、清单驱动参数化与断点续跑等基础设施封装. 当前处于调试完善阶段, 接口暂不稳定, 暂不建议外部直接依赖; 内部模块结构将在接口定稿后于文档中披露.
+    - `pytest_infra/`: pytest 基础设施层
+      - `collection.py`: 动态收集(调用manifest_loader).
+      - `models.py`: 测试专用数据模型(如用例参数).
+      - `paths.py`: NeuraxisPaths + get_paths (纯数据 + 访问器).
+      - `recorder.py`: 测试结果记录器.
+      - `resume.py`: 断点续跑逻辑(基于历史结果).
+      - `manifest_loader.py`: 加载YAML清单并生成参数化.
+      - `session_manager.py`: 测试会话管理(共享资源、锁).
     - `utils/`: 基础工具层
       - `concurrent.py`: 并发控制与进程协同模块(内部桥接模块).
       - `data_sanitizer.py`: 数据清洗与类型安全工具.
@@ -45,8 +52,8 @@ TSFM 鲁棒性基准测试是一种系统化的测试工具, 旨在检验时间�
       - `runner.py`: 测试运行核心原语 (AST 静态发现 + 单用例执行 + 内存态结果追踪)
 - `testcases/`: 业务场景测试用例
 - `README.zh-CN.md`: 项目说明文档, 提供项目概述、使用方法、注意事项等.
-- `conftest.py`: pytest 入口配置, 内部桥接至 [`neuraxis_testkit.pytest_infra.conftest`](https://github.com/Neuraxis-Labs/TSFM-Robustness-Benchmark/blob/main/src/neuraxis_testkit/pytest_infra/conftest.py), 以复用根级 fixtures 与 hooks.
-- `run.py`: **项目统一入口**, 负责引导 `sys.path` 并按模块名或文件路径启动指定测试脚本. 【计划废弃】待 pytest 驱动链路调试稳定后, 该入口将由 pytest 直接替代并移除.
+- `conftest.py`: pytest 入口配置, 内部桥接至 [`neuraxis_testkit.pytest_infra`]
+- `pyproject.toml`: 项目配置文件.
 
 ## 3. 测试流程
 
@@ -125,4 +132,3 @@ python run.py <path/to/test_file.py>
 
 ## 7. 测试范围声明
 本框架的测试结果受限于模型特定版本、数据预处理策略及运行环境. 本工具旨在为时序模型的工程防御性架构设计提供客观参考视角, 而非对任何商业产品最终性能的绝对断言.
-

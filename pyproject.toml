@@ -1,0 +1,79 @@
+[project]
+name = "neuraxis_testkit"
+version = "0.1.0"
+description = "Common pytest infrastructure for Neuraxis products"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Neuraxis Team", email = "neuraxis@users.noreply.github.com" }
+]
+dependencies = [
+    "timecho_ai>=0.2.5",
+    "pandas>=3.0.5",
+    "requests>=2.34.2",
+    "pytest>=9.1.1",
+    "portalocker>=4.3.0",
+    "python-dotenv>=1.2.3",
+    "pyyaml>=6.0.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest-xdist>=3.8.0",
+    "pytest-html>=4.2.0",
+    "pytest-cov>=4.0.0",
+    "pytest-timeout>=2.0.0",
+    "pytest-mock>=3.0.0",
+    "pytest-randomly>=3.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["neuraxis_testkit*"]
+
+[tool.setuptools.package-data]
+"neuraxis_testkit.log" = ["logging.yaml"]
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["testcases"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+norecursedirs = [".git", ".tox", "env", "outputs", "*/data"]
+neuraxis_session_label = "TSFM Benchmark Test"
+log_file_basename = "tsfm_benchmark"
+addopts = "-v --output-dir=./outputs --strict-markers --tb=short --maxfail=5 --html=outputs/reports/report.html --self-contained-html"
+markers = [
+    "slow: Long-running test",
+    "smoke: Smoke test (core validation)",
+    "flaky: Flaky test requiring retries",
+    "freeze: Skip test",
+    "integration: Integration test (core validation)",
+    "unit: Unit Test",
+    "dirty: Dirty Data Robustness Test",
+    "concept_drift: Concept Drift Test",
+]
+log_cli = true
+log_cli_level = "DEBUG"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+log_cli_format = "[%(asctime)s.%(msecs)03d][%(levelname)8s][%(name)s] - %(message)s"
+
+[tool.coverage.run]
+source = ["src"]
+
+[project.entry-points.pytest11]
+neuraxis_testkit_hooks = "neuraxis_testkit.pytest_infra.hooks"
+neuraxis_testkit_fixtures = "neuraxis_testkit.pytest_infra.fixtures"
+

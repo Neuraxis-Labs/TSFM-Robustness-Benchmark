@@ -36,7 +36,14 @@ The project follows a standard layered architecture:
       - `filters.py`: Log filters (`ModuleLevelFilter`, `IgnoredLoggerFilter`).
       - `formatters.py`: Log formatters (`ColoredFormatter`).
       - `logging.yaml`: Handler management.
-    - `pytest_infra/`: pytest infrastructure layer 【WIP】— Provides encapsulated fixtures, manifest-driven parameterization, and resumable-execution infrastructure. Currently under active development and debugging; interfaces are not yet stable and direct external dependency is discouraged. The internal module layout will be documented once the interfaces are finalized.
+    - `pytest_infra/`: pytest infrastructure layer
+      - `collection.py`: Dynamic collection (invokes `manifest_loader`).
+      - `models.py`: Test-specific data models (e.g., test case parameters).
+      - `paths.py`: `NeuraxisPaths` + `get_paths` (pure data and accessors).
+      - `recorder.py`: Test result recorder.
+      - `resume.py`: Resume execution logic (based on historical results).
+      - `manifest_loader.py`: Loads YAML manifests and generates parameterizations.
+      - `session_manager.py`: Test session management (shared resources, locks).
     - `utils/`: Basic utilities layer
       - `concurrent.py`: Concurrency control and process coordination module (internal bridge module).
       - `data_sanitizer.py`: Data sanitization and type-safety utilities.
@@ -44,8 +51,8 @@ The project follows a standard layered architecture:
       - `runner.py`: Core test-running primitives (AST-based static discovery + single-case execution + in-memory result tracking).
 - `testcases/`: Business Scenario Test Cases
 - `README.md`: Project documentation, providing an overview, usage instructions, and notes.
-- `conftest.py`: pytest entry-point configuration; internally bridges to [`neuraxis_testkit.pytest_infra.conftest`](https://github.com/Neuraxis-Labs/TSFM-Robustness-Benchmark/blob/main/src/neuraxis_testkit/pytest_infra/conftest.py) to reuse root-level fixtures and hooks.
-- `run.py`: **Unified project entry point**, responsible for bootstrapping `sys.path` and launching the specified test script by module name or file path. 【Planned for removal】— Once the pytest-driven workflow is stable, this entry point will be replaced by pytest directly and removed.
+- `conftest.py`: pytest entry-point configuration; internally bridges to [`neuraxis_testkit.pytest_infra`]
+- `pyproject.toml`: Project configuration file.
 
 ## 3. Testing Workflow
 

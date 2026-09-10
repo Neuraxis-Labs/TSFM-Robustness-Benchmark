@@ -1,6 +1,6 @@
 
 """
-Usage Examples: 用法示例
+Usage Examples:
   pytest testcases/
 
   pytest testcases/ -k dirty
@@ -30,12 +30,18 @@ Usage Examples: 用法示例
 import pytest
 from config.settings import PROJECT_ROOT, OUTPUT_DIR, LOGS_DIR, RESULTS_DIR
 
-pytest_plugins = ["neuraxis_testkit.pytest_infra.conftest"]
 
 def pytest_addoption(parser: pytest.Parser) -> None:
-    parser.set_defaults(
-        project_root=str(PROJECT_ROOT),
-        output_dir=str(OUTPUT_DIR),
-        results_dir=str(RESULTS_DIR),
-        logs_dir=str(LOGS_DIR),
-    )
+    parser.addoption("--project-root", action="store", dest="project_root", default=str(PROJECT_ROOT), help="项目根目录")
+    parser.addoption("--output-dir", action="store", dest="output_dir", default=str(OUTPUT_DIR), help="输出目录")
+    parser.addoption("--results-dir", action="store", dest="results_dir", default=str(RESULTS_DIR), help="结果目录")
+    parser.addoption("--logs-dir", action="store", dest="logs_dir", default=str(LOGS_DIR), help="日志目录")
+
+def pytest_report_header(config):
+    """
+    Custom report header.
+    """
+
+    return [
+        "TSFM Time Series Forecasting Benchmark Framework (pytest native mode)",
+    ]

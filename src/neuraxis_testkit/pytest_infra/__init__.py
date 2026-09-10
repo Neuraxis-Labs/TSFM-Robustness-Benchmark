@@ -28,6 +28,8 @@ __all__ = [
     "conftest",
     "manifest_loader",
     "models",
+    "paths",
+    "recorder",
     "resume",
     "session_manager",
     # Core
@@ -35,3 +37,17 @@ __all__ = [
     "TestResult",
     "BatchReport",
 ]
+
+_submodules = {
+    "collection", "conftest", "manifest_loader", 
+    "models", "resume", "session_manager"
+}
+
+def __getattr__(name):
+    if name in _submodules:
+        import importlib
+        return importlib.import_module(f".{name}", __name__)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+def __dir__():
+    return sorted(__all__)

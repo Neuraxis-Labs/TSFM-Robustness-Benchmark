@@ -1,0 +1,281 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+neuraxis_testkit/pytest_infra/hooks.py - pytest hooks (no fixtures)  (无 fixture)
+
+Registered via pytest11 entry_points in pyproject.toml, automatically effective after business-side pip install.
+
+Hooks
+  pytest_addoption              Register command-line options (--csv-output / --resume / --test-timeout)
+  pytest_configure              Path resolution (single source of truth) / create directories / log file / markers / resume loading
+  pytest_runtest_makereport     Capture results -> write outputs/reports/report_<ts>.csv
+  pytest_collection_modifyitems Resume: skip completed test cases
+  pytest_sessionstart/finish    Session logs / cache record last_csv / summary
+
+Output Contract:
+  outputs/reports/   Run-level artifacts: report_<ts>.csv (--csv-output can override)
+  outputs/results/   Business-side interface results (managed by business, framework only creates directory but does not write)
+  outputs/logs/      Framework logs
+"""
+from __future__ import annotations
+
+import os, sys, pytest, threading
+from dataclasses import asdict
+from pathlib import Path
+from datetime import datetime
+from neuraxis_testkit.pytest_infra.models import TestStatus, TestResult
+from neuraxis_testkit.pytest_infra.resume import build_completed_keys
+from neuraxis_testkit.pytest_infra.paths import NeuraxisPaths, init_paths, get_paths
+from neuraxis_testkit.utils.concurrent import FileLock, is_xdist_worker, get_worker_id
+from neuraxis_testkit.utils.files import read_csv_to_list, append_to_csv, ensure_dir
+from neuraxis_testkit.log.config import force_console_encoding, set_log_file
+from neuraxis_testkit.log import get_logger
+
+logger = get_logger(__name__)
+_LAST_CSV_KEY = "neuraxis/last_execution_csv"
+
+_csv_locks: dict[str, FileLock] = {}
+_locks_guard = threading.Lock()   # Thread-safe within process
+
+def _get_csv_lock(csv_path: Path) -> FileLock:
+    """
+    Get the corresponding FileLock singleton by CSV path.
+    """
+    key = str(csv_path)
+    with _locks_guard:
+        if key not in _csv_locks:
+            _csv_locks[key] = FileLock(
+                lock_name=f"csv_{csv_path.stem}",   # lock file in system temp dir, competition issue disappears with business CSV same directory deletion
+                timeout=30.0,
+                stale_timeout=300.0,
+            )
+        return _csv_locks[key]
+
+
+# ============================================================
+# Command-line option registration
+# ============================================================
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """
+    Register framework options for dependency injection.
+
+    Business projects register these same options with concrete defaults in their root conftest.py to inject paths.
+    """
+    parser.addoption("--csv-output", action="store", default=None, dest="csv_output", help="Override execution-result CSV path (default: outputs/reports/results_<run_ts>.csv; "
+                     "pass /dev/null or nul to disable CSV writing).")
+    parser.addoption("--resume", action="store_true", dest="resume", default=False, help="Enable checkpoint resumption: skip completed tests.")
+    parser.addoption("--resume-file", action="store", dest="resume_file", default=None, help="Explicit CSV file path for resume.")
+    parser.addoption("--test-timeout", action="store", dest="test_timeout", type=int, default=None, help="Timeout in seconds per test (0=unlimited, overrides pytest.ini).")
+
+    parser.addini(
+        "neuraxis_session_label",
+        default="Neuraxis TestKit",
+        help="Session label for log output.",
+    )
+    parser.addini(
+        "log_file_basename",
+        default="neuraxis_testkit",
+        help="Base name for log file, can be overridden by business side.",
+    )
+
+
+# ================================================================
+# 2. Pytest Configuration / Pytest 配置阶段
+# ================================================================
+
+def pytest_configure(config: pytest.Config) -> None:
+    """
+    Register markers and initialize resume logic.
+    """
+    force_console_encoding()
+
+    # 1. Path resolution: single source of truth
+    # The "or" short-circuit implements this chain; None defaults in pytest_addoption
+    # are REQUIRED — a concrete default there would silently swallow injection (2).
+    root    = Path(config.getoption("project_root", default=None) or config.rootpath or Path.cwd())
+    output  = Path(config.getoption("output_dir", default=None)   or root / "outputs")
+    results = Path(config.getoption("results_dir", default=None)  or output / "results")
+    logs    = Path(config.getoption("logs_dir", default=None)     or output / "logs")
+    reports = output / "reports"
+
+    # Ensure key directories exist (idempotent operation): create directories immediately upon module load
+    for _dir in (output, results, logs, reports):
+        ensure_dir(_dir)
+
+    # Run timestamp: generated by controller, inherited by xdist workers via environment variable
+    run_ts  = os.environ.get("NEURAXIS_RUN_TS") or datetime.now().strftime("%Y%m%d_%H%M%S")
+    os.environ.setdefault("NEURAXIS_RUN_TS", run_ts)
+    csv_override = config.getoption("csv_output", default=None)
+    report_csv = (Path(csv_override) if csv_override else reports / f"report_{run_ts}.csv")
+
+    log_basename = config.getini("log_file_basename") or "neuraxis_testkit"
+    log_file_path = logs / f"{log_basename}_{run_ts[:8]}.log"
+    set_log_file(log_file_path) 
+
+    paths = NeuraxisPaths(
+        root=root, output=output, logs=logs, log_file=log_file_path,
+        results=results, reports=reports, report_csv=report_csv,
+    )
+    init_paths(config, paths)
+
+    # --resume: explicit --resume-file > last_execution_csv from cache
+    config._completed_keys = set()
+    if config.getoption("resume"):
+        resume_file = (config.getoption("resume_file") or config.cache.get(_LAST_CSV_KEY, None))
+        if not resume_file:
+            logger.warning("Resume enabled but no previous CSV found (cache empty). Running ALL tests.")
+        elif not Path(resume_file).exists():   # cache 路径存在但文件已删
+            logger.warning(f"Resume file not found: {resume_file}. Running ALL tests.")
+        else:
+            try:
+                rows = read_csv_to_list(resume_file)
+                # Rerun SKIPPED/TIMEOUT/UNKNOWN; skip PASSED/FAILED/ERROR (judged by build_completed_keys)
+                config._completed_keys, _ = build_completed_keys(rows)
+                logger.info(f"Resume enabled: skip {len(config._completed_keys)} terminal tests, "
+                            f"rerun SKIPPED/TIMEOUT/UNKNOWN. Source: {resume_file}")
+            except Exception as exp:
+                logger.warning(f"Resume load failed: {exp}, running all tests")
+
+    # 2. Register markers
+    markers = {
+        "slow": "Long-running test",
+        "smoke": "Smoke test (core validation)",
+        "flaky": "Flaky test requiring retries",
+        "freeze": "Skip test"
+    }
+    for name, desc in markers.items():
+        config.addinivalue_line("markers", f"{name}: {desc}")
+
+# ============================================================
+# 3. Hooks: Result capture / Resume / Session
+# ============================================================
+
+# Global session result cache (for sessionfinish use)
+_session_results: list = []   # only statistics from call phase (xdist workers each shard)
+
+# Hook: Test result capture
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    """
+    Capture results from three phases:
+      - call:     record all
+      - setup:    record only on failure (fixture init failure must not be missed)
+      - teardown: record only on failure (exception inside teardown)
+    """
+    outcome = yield
+    report = outcome.get_result()
+
+    # ---- Phase filtering: call all, setup/teardown only failures ----
+    if report.when == "call":
+        _session_results.append(report)
+    elif report.when in ("setup", "teardown") and not report.passed:
+        _session_results.append(report)
+    else:
+        return
+
+    # ---- Status mapping (overrides setup/teardown semantics) ----
+    if report.passed:
+        status, message = TestStatus.PASSED, ""
+    elif report.failed:
+        status = TestStatus.FAILED
+        message = str(report.longrepr) if report.longrepr else "failed"
+        if report.when == "setup":
+            status = TestStatus.ERROR          # fixture init failure classified as ERROR
+            message = f"[setup] {message}"
+        elif report.when == "teardown":
+            message = f"[teardown] {message}"
+    elif report.skipped:
+        status, message = TestStatus.SKIPPED, str(report.longrepr or "skipped")
+    else:
+        status, message = TestStatus.UNKNOWN, "unknown"
+
+    # Write execution result CSV for this run (suppressed by --csv-output /dev/null)
+    nodeid = item.nodeid
+    result = TestResult(
+        test_id=nodeid,
+        module_path=nodeid.split("::")[0],
+        func_name=nodeid.split("::")[-1],
+        status=status,
+        message=message,
+        duration=round(report.duration, 3),
+        timestamp=datetime.now().isoformat(),
+    )
+    report_csv_path = get_paths(item.config).report_csv
+    _append_result_safe(report_csv_path, result)
+
+def _append_result_safe(csv_path: Path, result: TestResult) -> None:
+    """
+    Append a single result under lock protection. strict_suffix=False allows paths like /dev/null with no suffix.
+    """
+    lock = _get_csv_lock(csv_path)
+    try:
+        with lock.exclusive():
+            append_to_csv(csv_path, asdict(result), strict_suffix=False)
+    except Exception as exp:
+        logger.error(f"Failed to write CSV [{get_worker_id()}]: {exp}")
+
+
+# Hook: Post-collection modification
+def pytest_collection_modifyitems(
+    config: pytest.Config,
+    items: list[pytest.Item]
+) -> None:
+    """
+    Skip test items that were completed in the previous run (Resume feature).
+    """
+    completed: set[str] = getattr(config, "_completed_keys", set())
+    if not completed:
+        return
+
+    skipped_count = 0
+    for item in items:
+        if item.nodeid in completed:
+            # Add the "skip" marker to prevent execution
+            item.add_marker(pytest.mark.skip(
+                reason="Already passed in previous run"
+            ))
+            skipped_count += 1
+
+    if skipped_count > 0:
+        logger.info(f"Skipped {skipped_count} tests due to resume")
+
+@pytest.hookimpl(trylast=True)
+def pytest_sessionstart(session):
+    """
+    Session start: Initialization.
+    Session 开始: 初始化.
+    """
+    config_path = get_paths(session.config)
+    label = session.config.getini("neuraxis_session_label") or "Neuraxis TestKit"
+
+    logger.info("=" * 60)
+    logger.info(f"{label} Session Started")
+    logger.info(f"Python: {sys.version}")
+    #logger.info(f"pytest: {pytest.__version__}")
+    logger.info(f"Project Root: {config_path.root}")
+    logger.info(f"Project Report: {config_path.report_csv}")
+    logger.info(f"Project LogFile: {config_path.log_file}")
+    logger.info("=" * 60)
+
+@pytest.hookimpl(trylast=True)
+def pytest_sessionfinish(session, exitstatus):
+    """
+    Session end: Summary report.
+    """
+    if not is_xdist_worker():
+        FileLock.cleanup_locks()
+        report_csv = get_paths(session.config).report_csv
+        if report_csv.suffix == ".csv":     # do not cache when overridden to /dev/null/nul
+            session.config.cache.set(_LAST_CSV_KEY, str(report_csv))
+
+    total = len(_session_results)
+    passed = sum(1 for result in _session_results if result.passed)
+    failed = sum(1 for result in _session_results if result.failed)
+    skipped = sum(1 for result in _session_results if result.skipped)
+    label = session.config.getini("neuraxis_session_label") or "Neuraxis TestKit"
+
+    logger.info("=" * 60)
+    logger.info(f"{label} Session Finished")
+    logger.info(f"Total: {total} | Passed: {passed} | Failed: {failed} | Skipped: {skipped}")
+    logger.info(f"Exit Status: {exitstatus}")
+    logger.info("=" * 60)

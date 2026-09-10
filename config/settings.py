@@ -34,6 +34,11 @@ RESULTS_DIR: Path = OUTPUT_DIR / "results"
 LOGS_DIR:    Path = OUTPUT_DIR / "logs"
 
 # ============================================================
+# pytest related configurations
+# ============================================================
+PYTEST_CACHE_DIR = PROJECT_ROOT / ".pytest_cache"
+PYTEST_XML_DIR = OUTPUT_DIR       # JUnit XML default output directory
+
 # API Configuration
 # ============================================================
 # Priority: Environment variables > Default values here
@@ -43,10 +48,3 @@ API_KEY: str = os.getenv(
     "TIMECHO_API_KEY",
     "ts-Update-Your-TIMECHO_API_KEY",
 )
-
-# Automatically ensure key directories exist (idempotent operation)
-from neuraxis_testkit.utils.files import ensure_dir
-
-for _dir in (OUTPUT_DIR, LOGS_DIR, RESULTS_DIR):
-    ensure_dir(_dir)
-
