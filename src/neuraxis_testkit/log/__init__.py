@@ -18,7 +18,6 @@ from .decorators import log_execution, log_time
 
 
 __all__ = [
-    # Core
     # Functions
     'get_logger',
     'get_default_logger',
