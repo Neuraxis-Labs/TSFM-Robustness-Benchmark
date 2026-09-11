@@ -38,11 +38,7 @@ Usage Examples:
 >>> from core.metrics import calc_metrics, calc_diff, evaluate_prediction
 
 >>> # Data models
->>> from core.models import TestStatus, TestResult, BatchReport
->>> result = TestResult(module_path="test_xxx.py")
->>> result.mark_start()
->>> result.mark_end(TestStatus.PASSED)
->>> print(result.status.get_display("PASSED"))  # i18n display
+>>> from core.models import ForecastResult, BatchForecastReport
 
 >>> # Result management (with auto buffering)
 >>> from core.results import load_results_from_csv, append_result_to_csv, flush_all_results
@@ -51,7 +47,7 @@ Usage Examples:
 >>> flush_all_results()  # Must call before exit
 
 >>> # Strategy control
->>> from core.resume import is_rate_limited, should_skip_test, build_completed_keys
+>>> from core.resume import is_rate_limited, should_skip_test, build_completed_keys, get_last_failed_from_cache
 >>> if is_rate_limited("Error 429"):
 ...     print("Rate limit detected")
 
