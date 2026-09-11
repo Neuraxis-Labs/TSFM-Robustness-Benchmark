@@ -73,7 +73,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="Session label for log output.",
     )
     parser.addini(
-        "log_file_basename",
+        "log_file_name_prefix",
         default="neuraxis_testkit",
         help="Base name for log file, can be overridden by business side.",
     )
@@ -108,7 +108,7 @@ def pytest_configure(config: pytest.Config) -> None:
     csv_override = config.getoption("csv_output", default=None)
     report_csv = (Path(csv_override) if csv_override else reports / f"report_{run_ts}.csv")
 
-    log_basename = config.getini("log_file_basename") or "neuraxis_testkit"
+    log_basename = config.getini("log_file_name_prefix") or "neuraxis_testkit"
     log_file_path = logs / f"{log_basename}_{run_ts[:8]}.log"
     set_log_file(log_file_path) 
 

@@ -53,7 +53,7 @@ python_classes = "Test*"
 python_functions = "test_*"
 norecursedirs = [".git", ".tox", "env", "outputs", "*/data"]
 neuraxis_session_label = "TSFM Benchmark Test"
-log_file_basename = "tsfm_benchmark"
+log_file_name_prefix = "tsfm_benchmark"
 addopts = "-v --output-dir=./outputs --strict-markers --tb=short --maxfail=5 --html=outputs/reports/report.html --self-contained-html"
 markers = [
     "slow: Long-running test",
