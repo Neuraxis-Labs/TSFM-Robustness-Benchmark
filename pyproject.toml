@@ -13,26 +13,25 @@ dependencies = [
     "pandas>=3.0.5",
     "requests>=2.34.2",
     "pytest>=9.1.1",
-    "portalocker>=4.3.0",
+    "portalocker[win32]>=4.3.0; sys_platform == 'win32'",
+    "portalocker>=4.3.0; sys_platform != 'win32'",
     "python-dotenv>=1.2.3",
     "pyyaml>=6.0.3",
 ]
 
 [project.optional-dependencies]
-dev = [
+test = [
     "pytest-xdist>=3.8.0",
     "pytest-html>=4.2.0",
     "pytest-cov>=4.0.0",
     "pytest-timeout>=2.0.0",
     "pytest-mock>=3.0.0",
     "pytest-randomly>=3.0.0",
-    "ruff>=0.1.0",
-    "mypy>=1.0.0",
     "pre-commit>=3.0.0",
 ]
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=64.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
