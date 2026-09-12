@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/handlers.py -- Log Handler Management
+neuraxis_testkit.log.handlers - Log Handler Management
 
 Responsible for creating and configuring various log handlers.
 """

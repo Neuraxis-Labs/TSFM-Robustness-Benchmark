@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-irregular_sampling_test.py -- Irregular Sampling Robustness Test
+irregular_sampling_test.py - Irregular Sampling Robustness Test
 Scenario A: Variable Sampling Rate and Irregular Timestamp Test
 ====================================
 Industrial Context:
@@ -215,13 +215,13 @@ def _make_test_result(
 def _analyze_timestamp_usage(results: list[dict]) -> dict[str, Any]:
     """
     Analyze whether SDK utilized timestamp semantics based on metric variance.
-    
+
     Core logic: If all scenarios have identical MAE (variance < threshold),
     SDK likely ignores timestamps and processes by row order only.
-    
+
     Args:
         results: List of test results
-    
+
     Returns:
         analysis: Dictionary containing analysis results and conclusions
     """
@@ -232,7 +232,7 @@ def _analyze_timestamp_usage(results: list[dict]) -> dict[str, Any]:
 
     for model_id in MODELS:
         model_results = [r for r in results if r["model_id"] == model_id and r["success"]]
-        
+
         if len(model_results) < 2:
             analysis["model_analysis"][model_id] = {
                 "status": "insufficient_data",
@@ -248,7 +248,7 @@ def _analyze_timestamp_usage(results: list[dict]) -> dict[str, Any]:
                 break
         if baseline_mae is None:
             baseline_mae = model_results[0]["mae"]
-        
+
         # Calculate MAE variance across scenarios
         mae_values = [r["mae"] for r in model_results]
         mae_variance = np.var(mae_values)

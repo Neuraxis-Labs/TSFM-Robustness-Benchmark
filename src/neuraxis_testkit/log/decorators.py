@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/decorators.py -- Logging Decorators
+neuraxis_testkit.log.decorators - Logging Decorators
 
 Provides decorators for function execution logging and execution time tracking.
 """
@@ -9,10 +9,8 @@ Provides decorators for function execution logging and execution time tracking.
 import time
 from functools import wraps
 from typing import Callable
-
-from neuraxis_testkit.log.core import Logger
 from neuraxis_testkit.log.config import VALID_LEVELS
-
+from neuraxis_testkit.log.core import Logger
 
 def log_execution(
     logger: Logger | None = None,

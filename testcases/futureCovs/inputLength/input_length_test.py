@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-input_length_test.py -- input_length Ablation Test
+input_length_test.py - input_length Ablation Test
 ====================================
 Test Purpose: Evaluate the responsiveness of the TimechoAI prediction API under varying historical input lengths.
 
@@ -43,7 +43,7 @@ np.random.seed(42)
 def generate_synthetic_data(total_points: int = 576) -> pd.DataFrame:
     """
     Generate synthetic time-series data (trend + seasonality + noise).
-    
+
     Args:
         total_points: Total number of data points, default 576 (512 max input + 64 forecast).
 
@@ -94,7 +94,7 @@ def run_input_length_test() -> list:
 
             t0 = time.perf_counter()
             try:
-                # Call API through core/timecho.py wrapper
+                # Call API through core.timecho wrapper
                 pred_values, elapsed_ms, error = forecast(
                     targets=history,
                     model_id=model_id,

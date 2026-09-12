@@ -1,5 +1,5 @@
 """
-config/settings.py -- Global Configuration
+config.settings - Global Configuration
 
 Centrally manages all environment-configurable items.
 This module is the single source of truth for paths and secrets.

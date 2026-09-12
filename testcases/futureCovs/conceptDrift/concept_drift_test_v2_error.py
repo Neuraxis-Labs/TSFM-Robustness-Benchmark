@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-concept_drift_test_v2_error.py —— Concept Drift Test (XYZ Scenario, Error Report) 概念漂移测试(XYZ场景) 
+concept_drift_test_v2_error.py — Concept Drift Test (XYZ Scenario, Error Report) 概念漂移测试(XYZ场景) 
 ====================================
 Industrial Context:
   Equipment start-stop cycles, load steps, and seasonal operating condition switches cause inconsistencies between 

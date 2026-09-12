@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/config.py -- Logging Configuration Definitions
+neuraxis_testkit.log.config - Logging Configuration Definitions
 
 Supports overriding configurations via environment variables.
 """
 
-import os, sys
-import logging
+import os, sys, logging
 from pathlib import Path
 from datetime import datetime
 from config.settings import LOGS_DIR

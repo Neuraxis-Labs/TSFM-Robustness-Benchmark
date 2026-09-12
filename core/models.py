@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-core/models.py — Shared Data Models
+core.models — Shared Data Models
 
-Extracted from utils/runner.py to serve as the single source of truth for
+Extracted from utils.runner to serve as the single source of truth for
 test-status / test-result / batch-report data structures.
 
 Consumers:
-  - utils/runner.py  (legacy AST runner)
-  - conftest.py      (pytest bridge layer)
-  - core/resume.py   (checkpoint / resume status controller)
-  - core/results.py  (result persistence manager)
+  - utils.runner  (legacy AST runner)
+  - conftest      (pytest bridge layer)
+  - core.resume   (checkpoint / resume status controller)
+  - core.results  (result persistence manager)
 
 Design Principles:
   - Pure data structures — no I/O, no side effects, no business logic
@@ -145,7 +145,7 @@ class TestResult:
         self.error = error
 
     def to_dict(self) -> dict[str, Any]:
-        """Dictionary provided for core/results.py to persist to disk."""
+        """Dictionary provided for core.results to persist to disk."""
         return {
             "module_path": self.module_path,
             "status": self.status.value,

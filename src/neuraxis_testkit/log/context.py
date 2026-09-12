@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/context.py -- Logging Context Manager
+neuraxis_testkit.log.context - Logging Context Manager
 
 Provides a context manager for temporarily modifying log levels.
 """

@@ -1,5 +1,5 @@
 """
-neuraxis_testkit/log - Neuraxis TestKit Logging Module
+neuraxis_testkit.log - Neuraxis TestKit Logging Module
 
 Provides a concise logging interface and hides internal implementation details.
 

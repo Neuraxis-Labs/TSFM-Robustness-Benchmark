@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-cov_test.py —— Covariate Validity Test
+cov_test.py — Covariate Validity Test
 
 Test Purpose: Verify if TimechoAI uses "future covariates"
 

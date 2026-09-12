@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/core.py -- Core Logger Class
+neuraxis_testkit.log.core - Core Logger Class
 
 Provides a singleton logger with support for asynchronous logging and concurrency safety.
 """

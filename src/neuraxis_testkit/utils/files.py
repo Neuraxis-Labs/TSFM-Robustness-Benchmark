@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/utils/files.py -- File operation utility module
+neuraxis_testkit.utils.files - File operation utility module
 
 Provides unified CSV file read/write interface, supporting:
   - Multiple data format saving

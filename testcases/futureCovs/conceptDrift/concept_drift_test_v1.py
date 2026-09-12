@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-concept_drift_test_v1.py —— Concept Drift Test (Simplified Edition)
+concept_drift_test_v1.py — Concept Drift Test (Simplified Edition)
 ====================================
 Industrial Context:
   Equipment start-stop cycles, load steps, and seasonal operating condition switches cause inconsistencies between 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-concept_drift_test_v2.py —— Concept Drift Test (XYZ Scenario,Revised Version) 概念漂移测试(XYZ场景,修正版)
+concept_drift_test_v2.py — Concept Drift Test (XYZ Scenario,Revised Version) 概念漂移测试(XYZ场景,修正版)
 ====================================
 Industrial Context:
   Equipment start-stop cycles, load steps, and seasonal operating condition switches cause inconsistencies between 
@@ -156,16 +156,16 @@ def build_scenarios():
     history_slope = (BASE_TREND_END - BASE_TREND_START) / N_CONTEXT
     # 未来趋势: 从历史终点继续延伸, 保持相同斜率
     future_trend = np.linspace(BASE_TREND_END, BASE_TREND_END + history_slope * N_FORECAST, N_FORECAST)
-    
+
     t_future = np.arange(N_CONTEXT, N_TOTAL)
     future_seasonal = BASE_SEASONAL_AMP * np.sin(2 * np.pi * t_future / BASE_SEASONAL_PERIOD)
-    
+
     np.random.seed(42)
     future_noise_base = np.random.randn(N_FORECAST) * BASE_NOISE_STD
-    
+
     # --- [修正2] 噪声倍率: 使用标准差倍率 ---
     future_noise_expanded = future_noise_base * DRIFT_NOISE_STD_MULTIPLIER
-    
+
     # 构造未来目标序列
     future_mean_shift = (future_trend + future_seasonal + future_noise_base + DRIFT_MEAN_SHIFT).round(4)
     future_variance_expansion = (future_trend + future_seasonal + future_noise_expanded).round(4)
@@ -196,14 +196,14 @@ def build_scenarios():
         t_ctx = np.arange(N_CONTEXT)
         hist_trend = np.linspace(BASE_TREND_START, BASE_TREND_END, N_CONTEXT)
         hist_seasonal = BASE_SEASONAL_AMP * np.sin(2 * np.pi * t_ctx / BASE_SEASONAL_PERIOD)
-        
+
         # 2. 计算纯噪声: 原始数据 - 趋势 - 季节
         pure_noise = base_history - hist_trend - hist_seasonal
-        
+
         stable_len = N_CONTEXT - DRIFT_RAMP_LEN
         ramp_t = np.arange(stable_len, N_CONTEXT)
         ramp_idx = np.arange(DRIFT_RAMP_LEN)
-        
+
         # S型权重
         weight = 1 / (1 + np.exp(-(ramp_idx - DRIFT_RAMP_LEN / 2) / 8))
 
@@ -353,7 +353,7 @@ def main():
             completed_keys.add(key)
         elif not is_rate_limited(str(record.get("error", ""))):
             completed_keys.add(key)
-            
+
     total_needed = TOTAL_RAW - NO_COV_SKIP_COUNT - DEDUP_SKIP_COUNT - perm_fail_count
     success_so_far = len([record for record in completed_records if record.get("success")])
 

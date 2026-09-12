@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/formatters.py -- Logging Formatters
+neuraxis_testkit.log.formatters - Logging Formatters
 
 Contains formatters for colored console output, etc.
 """
