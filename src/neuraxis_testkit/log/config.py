@@ -284,6 +284,8 @@ def _resolve_placeholders(text: str, ctx: dict) -> str:
             return str(_coerce(name, default))
         # fail-fast: leaving ${VAR} in dictConfig only causes obscure errors
         raise ValueError(
+            f"log config: undefined variable {name} and no default value "
+            f"(logging.yaml placeholders cannot be resolved; please set corresponding LOG_* environment variable or provide default in placeholder)"
         )
 
     return "\n".join(
