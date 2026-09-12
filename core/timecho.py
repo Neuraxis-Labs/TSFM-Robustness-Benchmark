@@ -1,5 +1,5 @@
 """
-core.timecho — TimechoAI CRUD Wrapper
+core.timecho - TimechoAI CRUD Wrapper
 
 Provides a general calling layer for Timecho prediction interface, including:
   - forecast(): Wraps API call, timing, and exception handling

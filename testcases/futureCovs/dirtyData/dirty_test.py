@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-dirty_test.py — Dirty Data Robustness Test (No NaN Support)
+dirty_test.py - Dirty Data Robustness Test (No NaN Support)
 ====================================
 Test Purpose: Validate model's robustness against missing values and anomalous spikes
 

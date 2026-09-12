@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit.pytest_infra.test_helpers — pytest test-process helpers (glue layer)
+neuraxis_testkit.pytest_infra.test_helpers - pytest test-process helpers (glue layer)
 
 Usage Examples:
     from neuraxis_testkit.pytest_infra.test_helpers import load_test_data, load_and_validate

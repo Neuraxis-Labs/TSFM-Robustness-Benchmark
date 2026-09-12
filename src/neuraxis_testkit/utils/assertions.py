@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit.utils.assertions — Generic Assertions Library (Pure Logic)
+neuraxis_testkit.utils.assertions - Generic Assertions Library (Pure Logic)
 
 Usage Examples:
     from neuraxis_testkit.utils.assertions import (

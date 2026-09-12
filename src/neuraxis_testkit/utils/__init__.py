@@ -10,22 +10,22 @@ assertions.py - Generic Assertions Library (Pure Logic)
   This module is pure logic: it does not depend on pytest and should not call pytest.fail.
   On assertion failure, key parameter values are logged via logger.error for easier debugging.
 
-concurrent.py — (Internal) Concurrent Utilities
+concurrent.py - (Internal) Concurrent Utilities
   Provides thread-safe primitives (FileLock, ProcessSafeCache) used internally.
 
-log — Logging Management
+log - Logging Management
   Centralized logging configuration and management.
   Provides a unified interface for log initialization, handler management, and context propagation.
 
-data_sanitizer.py — Data Sanitization & Type Safety
+data_sanitizer.py - Data Sanitization & Type Safety
   Handles NaN/Inf values for JSON compatibility and provides robust type conversion.
   Ensures data integrity before persistence or transmission.
 
-files.py — File Operation Utilities
+files.py - File Operation Utilities
   Provides functionality for reading, writing, appending, and status checking for files (CSV/JSON).
   Unified error handling and path management.
 
-runner.py — Test Runner Core
+runner.py - Test Runner Core
   Test discovery (AST static analysis), single-case execution (timeout + retry), result tracking.
   Provides the execution primitives shared by neuraxis_testkit.pytest_infra.fixtures.
 

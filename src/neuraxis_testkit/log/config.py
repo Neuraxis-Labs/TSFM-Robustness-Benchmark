@@ -44,7 +44,6 @@ def get_logs_dir() -> Path:
     If not set (i.e., set_log_file has not been called), returns the default directory
     (current_directory/outputs/logs) and creates it automatically; if the default is not writable,
     falls back to the system temporary directory.
-
     """
     global _LOGS_DIR
     if _LOGS_DIR is not None:

@@ -1,32 +1,32 @@
 """
-core — Business Core Layer
+core - Business Core Layer
 
 Provides centralized management for business logic, state, and external interactions.
 Serves as the bridge between the ``testcases`` layer and ``utils`` layer.
 
 Modules:
 -------
-client.py — TimechoAI Client Connection
+client.py - TimechoAI Client Connection
   Provides factory functions get_timecho_client() / get_timecho_async_client(),
   unifying the creation and lifecycle management of TimechoAIClient / TimechoAIAsyncClient instances.
   NOT exposed in __all__. Used by timecho.py for client operation safety.
 
-metrics.py — Evaluation Metrics Calculator
+metrics.py - Evaluation Metrics Calculator
   Provides standard evaluation metrics (MAE, RMSE, MAPE) for time series forecasting models.
   Pure mathematical calculation functions without side effects.
 
-models.py — Shared Data Models
+models.py - Shared Data Models
   Defines core data structures (TestStatus, TestResult, BatchReport) used across
   the entire framework. Supports i18n via TEST_LANG environment variable.
 
-results.py — Test Result Manager
+results.py - Test Result Manager
   Manages result persistence (batch buffering), historical loading, and querying.
   Internally uses neuraxis_testkit.utils.concurrent for thread-safe file operations.
 
-resume.py — Strategy Controller
+resume.py - Strategy Controller
   Provides checkpoint resumption logic and rate limit detection strategy.
 
-timecho.py — TimechoAI Interaction Layer
+timecho.py - TimechoAI Interaction Layer
   Encapsulates API requests and response handling, offering a unified high-level API.
 
 Usage Examples:

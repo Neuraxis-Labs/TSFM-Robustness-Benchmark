@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-cov_test_models.py — Covariate Support Test (Iterate All Models)
+cov_test_models.py - Covariate Support Test (Iterate All Models)
 
 Test Purpose: Find out which models truly support covariates and which don't
 Test Principle: Pass "real covariates" to each model and see who reports errors and who can use them

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit.utils.runner — Test Runner Core
+neuraxis_testkit.utils.runner - Test Runner Core
 Core runner: test discovery + single-case execution + result tracking (in-memory)
 
 Design Principles:
