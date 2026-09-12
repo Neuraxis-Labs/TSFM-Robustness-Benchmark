@@ -6,6 +6,10 @@ underlying support for the entire project. It currently includes:
 
 Modules:
 -------
+assertions.py - Generic Assertions Library (Pure Logic)
+  This module is pure logic: it does not depend on pytest and should not call pytest.fail.
+  On assertion failure, key parameter values are logged via logger.error for easier debugging.
+
 concurrent.py — (Internal) Concurrent Utilities
   Provides thread-safe primitives (FileLock, ProcessSafeCache) used internally.
 
@@ -39,6 +43,7 @@ Usage Examples:
 """
 
 __all__ = [
+    "assertions",
     "concurrent",
     "data_sanitizer",
     "files",

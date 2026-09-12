@@ -3,9 +3,10 @@
 [English](./README.md) | [中文](./README.zh-CN.md)
 
 TSFM 鲁棒性基准测试是一种系统化的测试工具, 旨在检验时间序列基础模型在边缘场景(如频率不匹配、数据污染、协变量干扰等)下的工程鲁棒性.
-本次版本包含对TimechoAI作为首个靶向模型的系统性评估, 更多模型将在后续迭代中逐步整合.
+本次版本包含对 TimechoAI 作为首个靶向模型的系统性评估, 更多模型将在后续迭代中逐步整合.
 
 ## 1. 核心架构 - 分层架构
+
 - 本项目基于 **Python 3.12+** 开发, 核心依赖 `pytest`、`timecho-ai` 和 `pandas`.
 - 系统采用清晰的分层架构, 确保业务逻辑、基础工具与测试执行解耦.
 - 中间基础层原生支持 **跨平台运行** (Windows / macOS / Linux) 与 **并发执行** (基于 `pytest-xdist` 的分布式用例调度, 以及进程级并发控制).
@@ -35,6 +36,7 @@ TSFM 鲁棒性基准测试是一种系统化的测试工具, 旨在检验时间�
       - `formatters.py`: 日志格式化器 (`ColoredFormatter`).
       - `handlers.py`: Handler 管理.
     - `utils/`: 基础工具层
+      - `assertions.py`: 通用断言(纯逻辑).
       - `concurrent.py`: 并发控制与进程协同模块(内部桥接模块).
       - `data_sanitizer.py`: 数据清洗与类型安全工具.
       - `files.py`: 文件操作工具.
@@ -52,6 +54,9 @@ TSFM 鲁棒性基准测试是一种系统化的测试工具, 旨在检验时间�
 
 ## 4. 命令与安装
 
+- Python **3.12 或更高版本**
+- 推荐使用虚拟环境
+
 ### 4.1 创建虚拟环境
 
 ```bash
@@ -60,7 +65,7 @@ python -m venv .venv
 
 ### 4.2 激活虚拟环境
 
-请根据您的操作系统选择对应的命令:
+请根据操作系统选择对应的命令:
 
 **macOS / Linux:**
 ```bash
@@ -77,14 +82,16 @@ source .venv/bin/activate
 .venv\Scripts\Activate.ps1
 ```
 
-> **Windows PowerShell 用户注意**: 若遇到“禁止运行脚本”的报错, 请以管理员身份运行 PowerShell 并执行:   
-> `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+> **Windows PowerShell 用户注意**: 若遇到"禁止运行脚本"的报错, 请以管理员身份运行 PowerShell 并执行:
+>
+> ```powershell
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+> ```
 
 ### 4.3 退出虚拟环境
 
-**退出虚拟环境(通用)** :   
 ```bash
-  deactivate
+deactivate
 ```
 
 ### 4.4 安装项目依赖
@@ -106,6 +113,7 @@ python -m pip install timecho-ai pandas pytest pytest-xdist portalocker
 ## 5. 快速运行
 
 通过项目统一入口 `run.py` 启动测试:
+
 ```bash
 # 按模块名启动测试
 python run.py <module_name>
@@ -121,3 +129,6 @@ python run.py <path/to/test_file.py>
 ## 7. 测试范围声明
 本框架的测试结果受限于模型特定版本、数据预处理策略及运行环境. 本工具旨在为时序模型的工程防御性架构设计提供客观参考视角, 而非对任何商业产品最终性能的绝对断言.
 
+## 8. 许可证
+
+MIT License

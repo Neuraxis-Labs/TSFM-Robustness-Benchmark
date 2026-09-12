@@ -34,6 +34,7 @@ The project follows a standard layered architecture:
       - `formatters.py`: Log formatters (`ColoredFormatter`).
       - `handlers.py`: Handler management.
     - `utils/`: Basic utilities layer
+      - `assertions.py`: Generic Assertions Library (Pure Logic).
       - `concurrent.py`: Concurrency control and process coordination module (internal bridge module).
       - `data_sanitizer.py`: Data sanitization and type-safety utilities.
       - `files.py`: File operation utilities.
@@ -50,6 +51,9 @@ The project follows a standard layered architecture:
 4. **Result Output**: Output test results to the console or specified files.
 
 ## 4. Setup & Installation
+
+- Python **3.12 or higher**
+- Virtual environment recommended
 
 ### 4.1 Create Virtual Environment
 
@@ -76,14 +80,16 @@ source .venv/bin/activate
 .venv\Scripts\Activate.ps1
 ```
 
->  **Windows PowerShell users**: If you see an error about script execution being disabled, open PowerShell as Administrator and run:  
-> `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+> **Note for Windows PowerShell users**: If you encounter a "running scripts is disabled" error, run PowerShell as Administrator and execute:
+>
+> ```powershell
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+> ```
 
 ### 4.3 Quit Virtual Environment
 
-**Deactivate the virtual environment (universal)** :
 ```bash
-  deactivate
+deactivate
 ```
 
 ### 4.4 Install Dependencies
@@ -121,3 +127,6 @@ python run.py <path/to/test_file.py>
 ## 7. Scope of Testing Disclaimer
 The test results of this framework are limited by the specific model version, data preprocessing strategy, and runtime environment. This tool aims to provide an objective reference perspective for the engineering defensive architecture design of time-series models, rather than an absolute assertion of the final performance of any commercial product.
 
+## 8. License
+
+MIT License
