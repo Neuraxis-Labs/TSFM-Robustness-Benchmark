@@ -54,6 +54,7 @@ project/
 │       │   ├── paths.py             # NeuraxisPaths + get_paths (pure data + accessors)
 │       │   ├── resume.py            # Resume-from-breakpoint logic (based on historical results)
 │       │   ├── session_manager.py   # Test session management (shared resources, locks) SessionFileLock + SessionManager
+│       │   ├── test_helpers.py      # pytest test-process helpers (glue layer)
 │       │   └── test_recorder.py     # Test result recorder
 │       └── utils/                 # Common utilities layer
 │           ├── __init__.py          # Unified interface exposed externally

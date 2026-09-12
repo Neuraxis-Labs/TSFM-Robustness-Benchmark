@@ -31,6 +31,7 @@ __all__ = [
     "paths",
     "resume",
     "session_manager",
+    "test_helpers",
     "test_recorder",
     # Core
     "TestStatus",

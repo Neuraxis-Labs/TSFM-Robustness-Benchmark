@@ -83,14 +83,6 @@ def test_runner(request):
     )
 
 
-#@pytest.fixture(scope="function")
-#def assert_helper():
-#    """
-#    Assertion helper instance.
-#    """
-#    return TestHelpers()
-
-
 @pytest.fixture(scope="function")
 def result_recorder(request, test_logger):
     """

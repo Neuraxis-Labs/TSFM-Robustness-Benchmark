@@ -54,6 +54,7 @@ project/
 │       │   ├── paths.py               # NeuraxisPaths + get_paths (纯数据 + 访问器)
 │       │   ├── resume.py              # 断点续跑逻辑(基于历史结果)
 │       │   ├── session_manager.py     # 测试会话管理(共享资源、锁) SessionFileLock + SessionManager
+│       │   ├── test_helpers.py        # pytest 语境下的测试过程辅助 (glue 层)
 │       │   └── test_recorder.py       # 测试结果记录器
 │       └── utils/                   # 通用工具层
 │          ├── __init__.py             # 对外暴露的统一接口
@@ -92,7 +93,7 @@ project/
 
 ## 3. 测试流程
 
-1. **配置初始化**: `config/settings.py` 通过 `load_dotenv()` 加载 `env/` 目录下的环境变量文件（如 `.env`），并导出全局路径与运行配置
+1. **配置初始化**: `config/settings.py` 通过 `load_dotenv()` 加载 `env/` 目录下的环境变量文件(如 `.env`)，并导出全局路径与运行配置
 2. **模型初始化**: 使用提供的 API 密钥对 TimechoAI 模型进行初始化.
 3. **测试执行**: 根据提供的命令行参数执行指定的测试流程.
 4. **结果输出**: 将测试结果输出至控制台或指定文件.
