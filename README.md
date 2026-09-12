@@ -57,6 +57,7 @@ project/
 │       │   └── test_recorder.py     # Test result recorder
 │       └── utils/                 # Common utilities layer
 │           ├── __init__.py          # Unified interface exposed externally
+│           ├── assertions.py        # Generic Assertions Library (Pure Logic)
 │           ├── concurrent.py        # Concurrency-safe utilities (portalocker wrapper)
 │           ├── data_sanitizer.py    # Data cleaning and type safety utilities
 │           ├── files.py             # File operation utilities

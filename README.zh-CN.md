@@ -57,6 +57,7 @@ project/
 │       │   └── test_recorder.py       # 测试结果记录器
 │       └── utils/                   # 通用工具层
 │          ├── __init__.py             # 对外暴露的统一接口
+│          ├── assertions.py           # 通用断言(纯逻辑)
 │          ├── concurrent.py           # 并发安全工具 (portalocker 封装)
 │          ├── data_sanitizer.py       # 数据清洗与类型安全工具
 │          ├── files.py                # 文件操作工具
