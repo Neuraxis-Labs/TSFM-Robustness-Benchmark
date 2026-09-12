@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/pytest_infra/recorder.py - Test result recorder
+neuraxis_testkit/pytest_infra/test_recorder.py - Test result recorder
 """
 import time
 from datetime import datetime
@@ -10,7 +10,7 @@ from dataclasses import asdict
 from neuraxis_testkit.pytest_infra.models import TestStatus, TestResult
 from neuraxis_testkit.utils.files import append_to_csv
 
-class ResultRecorder:
+class TestResultRecorder:
     """
     Test result recorder: Writes pytest test results to CSV.
     """

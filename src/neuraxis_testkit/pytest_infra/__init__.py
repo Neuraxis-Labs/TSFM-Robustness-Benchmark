@@ -29,9 +29,9 @@ __all__ = [
     "manifest_loader",
     "models",
     "paths",
-    "recorder",
     "resume",
     "session_manager",
+    "test_recorder",
     # Core
     "TestStatus",
     "TestResult",

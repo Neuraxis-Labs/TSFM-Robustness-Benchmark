@@ -52,9 +52,9 @@ project/
 │       │   ├── manifest_loader.py     # 加载YAML清单并生成参数化
 │       │   ├── models.py              # 测试专用数据模型(如用例参数)
 │       │   ├── paths.py               # NeuraxisPaths + get_paths (纯数据 + 访问器)
-│       │   ├── recorder.py            # 测试结果记录器
 │       │   ├── resume.py              # 断点续跑逻辑(基于历史结果)
-│       │   └── session_manager.py     # 测试会话管理(共享资源、锁) SessionFileLock + SessionManager
+│       │   ├── session_manager.py     # 测试会话管理(共享资源、锁) SessionFileLock + SessionManager
+│       │   └── test_recorder.py       # 测试结果记录器
 │       └── utils/                   # 通用工具层
 │          ├── __init__.py             # 对外暴露的统一接口
 │          ├── concurrent.py           # 并发安全工具 (portalocker 封装)

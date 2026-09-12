@@ -52,9 +52,9 @@ project/
 │       │   ├── manifest_loader.py   # Loads YAML manifests and generates parametrization
 │       │   ├── models.py            # Test-specific data models (e.g., test case parameters)
 │       │   ├── paths.py             # NeuraxisPaths + get_paths (pure data + accessors)
-│       │   ├── recorder.py          # Test result recorder
 │       │   ├── resume.py            # Resume-from-breakpoint logic (based on historical results)
-│       │   └── session_manager.py   # Test session management (shared resources, locks) SessionFileLock + SessionManager
+│       │   ├── session_manager.py   # Test session management (shared resources, locks) SessionFileLock + SessionManager
+│       │   └── test_recorder.py     # Test result recorder
 │       └── utils/                 # Common utilities layer
 │           ├── __init__.py          # Unified interface exposed externally
 │           ├── concurrent.py        # Concurrency-safe utilities (portalocker wrapper)

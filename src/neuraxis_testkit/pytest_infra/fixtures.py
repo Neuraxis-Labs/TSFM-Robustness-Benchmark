@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import pytest
 from pathlib import Path
-from neuraxis_testkit.pytest_infra.recorder import ResultRecorder
+from neuraxis_testkit.pytest_infra.test_recorder import TestResultRecorder
 from neuraxis_testkit.pytest_infra.paths import get_paths
 from neuraxis_testkit.utils.runner import TestRunner
 from neuraxis_testkit.log import get_logger
@@ -98,7 +98,7 @@ def result_recorder(request, test_logger):
 
     As a yield fixture, automatically records results during teardown.
     """
-    recorder = ResultRecorder(
+    recorder = TestResultRecorder(
         csv_path=get_paths(request.config).report_csv,
         lock=None,
         logger=test_logger,
