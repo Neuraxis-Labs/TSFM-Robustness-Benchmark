@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-core/resume.py —— Resume from Checkpoint Strategy Controller
+core.resume - Resume from Checkpoint Strategy Controller
 
 Module Purpose:
   Provides checkpoint resumption strategy and rate limit detection.

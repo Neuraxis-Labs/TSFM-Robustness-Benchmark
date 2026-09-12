@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-core/client.py —— TimechoAI Client Factory
+core.client — TimechoAI Client Factory
 
 Purpose: Unified management of TimechoAIClient / TimechoAIAsyncClient instance
          creation, shielding API_KEY retrieval logic.
@@ -18,7 +18,7 @@ Calling Convention:
         from core.client import get_timecho_client # Business modules should not call directly
         from timecho_ai import TimechoAIClient # Business modules should not reference SDK directly
 
-  In the entire project, only core/timecho.py is the direct caller of core.client.
+  In the entire project, only core.timecho is the direct caller of core.client.
   All test scripts under testcases/ use this factory indirectly through core.timecho.forecast().
 
 Author: Janesong

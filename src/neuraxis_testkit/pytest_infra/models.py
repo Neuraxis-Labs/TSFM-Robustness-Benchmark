@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/pytest_infra/models.py - Shared Data Models
+neuraxis_testkit.pytest_infra.models - Shared Data Models
 """
 from enum import Enum
 from datetime import datetime

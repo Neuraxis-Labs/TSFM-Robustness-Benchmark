@@ -1,5 +1,5 @@
 """
-neuraxis_testkit/log - Neuraxis TestKit Logging Module
+neuraxis_testkit.log - Neuraxis TestKit Logging Module
 
 A thin wrapper on top of standard logging + logging.yaml (dictConfig),
 hiding configuration loading details and exposing only a unified logging interface.

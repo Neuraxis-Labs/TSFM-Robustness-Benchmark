@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/pytest_infra/fixtures.py - Framework-level fixtures (no hooks)
+neuraxis_testkit.pytest_infra.fixtures - Framework-level fixtures (no hooks)
 
 Key Fixtures:
   session:

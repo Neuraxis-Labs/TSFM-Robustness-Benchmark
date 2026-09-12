@@ -1,5 +1,5 @@
 """
-forecast_horizon_ablation.py -- Forecast Horizon Ablation Experiment
+forecast_horizon_ablation.py - Forecast Horizon Ablation Experiment
 ====================================
 Test Principle: Fix the input length and vary the forecast horizon to observe changes in accuracy
 

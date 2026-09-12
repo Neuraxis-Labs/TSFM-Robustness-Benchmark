@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/filters.py -- Logging Filters
+neuraxis_testkit.log.filters - Logging Filters
 
 Contains filters for module-level log level overrides and ignoring specific loggers.
 """

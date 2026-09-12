@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/pytest_infra/test_recorder.py - Test result recorder
+neuraxis_testkit.pytest_infra.test_recorder - Test result recorder
 """
 import time
 from datetime import datetime

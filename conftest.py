@@ -9,9 +9,9 @@ Usage Examples:
   pytest testcases/ -m dirty
   pytest testcases/ -m "concept_drift and not slow"
 
-  pytest testcases/futureCovs/dirtyData/test_dirty.py
+  pytest testcases.futureCovs.dirtyData.test_dirty
 
-  pytest testcases/futureCovs/dirtyData/test_dirty.py::test_dirty_basic
+  pytest testcases.futureCovs.dirtyData.test_dirty::test_dirty_basic
 
   pytest testcases/ -n auto
 

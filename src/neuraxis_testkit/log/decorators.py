@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/decorators.py -- Logging Decorators
+neuraxis_testkit.log.decorators - Logging Decorators
 
 Provides decorators for function execution logging and execution time tracking.
 """

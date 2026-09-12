@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/core.py -- Core Logger (thin wrapper over standard library)
+neuraxis_testkit.log.core - Core Logger (thin wrapper over standard library)
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ def get_logger(name: str | None = None) -> logging.Logger:
     """
     Get a logger; automatically loads logging.yaml on first call.
 
-    Usage:
+    Example:
         logger = get_logger(__name__)
 
     Returns a standard logging.Logger (with dynamically registered trace method).

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-dirty_test.py —— Dirty Data Robustness Test (No NaN Support)
+dirty_test.py — Dirty Data Robustness Test (No NaN Support)
 ====================================
 Test Purpose: Validate model's robustness against missing values and anomalous spikes
 
@@ -188,7 +188,7 @@ for model_id in MODEL_LIST:
                     forecast_kwargs["history_covs"] = history_covs
                     forecast_kwargs["future_covs"] = future_cov
 
-                # Call API through core/timecho.py wrapper
+                # Call API through core.timecho wrapper
                 api_call_count += 1
                 print(f"     [{pass_name}] API call #{api_call_count}...")
 

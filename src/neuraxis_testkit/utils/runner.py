@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/utils/runner.py — Test Runner Core
+neuraxis_testkit.utils.runner — Test Runner Core
 Core runner: test discovery + single-case execution + result tracking (in-memory)
 
 Design Principles:
@@ -23,7 +23,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 from config.settings import PROJECT_ROOT
 from neuraxis_testkit.log import get_logger
-from core.models import TestStatus, TestResult  # noqa: F401
+from neuraxis_testkit.pytest_infra.models import TestStatus, TestResult  # noqa: F401
 
 
 # ============================================================
@@ -38,7 +38,7 @@ class TestDiscoverer:
     Usage Examples:
       - run.py --list: List all tests
       - conftest.py: Can replace pytest_collect_file for pre-filtering
-      - core/resume.py: Determine the full scope for checkpoint recovery
+      - core.resume: Determine the full scope for checkpoint recovery
     """
 
     ENTRY_POINTS = ("main", "run", "start")

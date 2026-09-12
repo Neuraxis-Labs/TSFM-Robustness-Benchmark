@@ -2,7 +2,7 @@
 # neuraxis_testkit logging configuration (logging.config.dictConfig, version 1)
 # ----------------------------------------------------------------------------
 # Industry common practice: YAML + python official dictConfig
-#   - ${VAR}          : resolved from environment variables (config/settings.py already loads .env)
+#   - ${VAR}          : resolved from environment variables (config.settings already loads .env)
 #   - ${VAR:default}  : default value when environment variable is missing
 #   - ${LOG_FILE_PATH}: dynamic file name injected by log/config.py (date + xdist worker suffix)
 # Override priority: env/.env.test environment variables > default values in this file
@@ -37,7 +37,7 @@ handlers:
     formatter: colored
     stream: ext://sys.stderr
 
-  file:                           # Rotate by size (default)
+  file:       # Rotate by size (default)
     class: logging.handlers.RotatingFileHandler
     level: 0
     formatter: standard
@@ -45,9 +45,9 @@ handlers:
     encoding: "${LOG_ENCODING}"
     maxBytes: ${LOG_MAX_BYTES}
     backupCount: ${LOG_BACKUP_COUNT}
-    delay: true                   # File created only on first log write
+    delay: true      # File created only on first log write
 
-  file_timed:                     # Rotate by time (enabled when LOG_ROTATION=time)
+  file_timed:        # Rotate by time (enabled when LOG_ROTATION=time)
     class: logging.handlers.TimedRotatingFileHandler
     level: "${LOG_LEVEL:INFO}"
     formatter: standard

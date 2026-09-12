@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-input_length_test.py -- input_length Ablation Test
+input_length_test.py - input_length Ablation Test
 ====================================
 Test Purpose: Evaluate the responsiveness of the TimechoAI prediction API under varying historical input lengths.
 
@@ -94,7 +94,7 @@ def run_input_length_test() -> list:
 
             t0 = time.perf_counter()
             try:
-                # Call API through core/timecho.py wrapper
+                # Call API through core.timecho wrapper
                 pred_values, elapsed_ms, error = forecast(
                     targets=history,
                     model_id=model_id,

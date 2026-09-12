@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-core/results.py - Test Result Manager
+core.results - Test Result Manager
 ====================================
 Module Purpose:
   Provides centralized management for test results, including result loading,

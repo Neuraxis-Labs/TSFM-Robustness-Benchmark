@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/pytest_infra/session_manager.py - Test session management (shared resources, cross-process locks)
+neuraxis_testkit.pytest_infra.session_manager - Test session management (shared resources, cross-process locks)
 
 Design notes:
   1. portalocker lock file is placed in the same directory and with the same stem as the target file (results_20260828.csv.lock).

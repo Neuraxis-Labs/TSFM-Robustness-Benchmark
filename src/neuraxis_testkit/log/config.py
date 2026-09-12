@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/config.py - Log Configuration Center (logging.yaml + environment variable overrides)
+neuraxis_testkit.log.config - Log Configuration Center (logging.yaml + environment variable overrides)
 
 Responsibilities:
     1. Environment variables -> module constants (LOG_LEVEL / LOG_FORMAT / ...)

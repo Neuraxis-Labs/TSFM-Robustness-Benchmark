@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/log/formatters.py -- Logging Formatters
+neuraxis_testkit.log.formatters - Logging Formatters
 
 ColoredFormatter is a custom factory for dictConfig.
 See logging.yaml: formatters.colored."(): neuraxis_testkit.log.formatters.ColoredFormatter".

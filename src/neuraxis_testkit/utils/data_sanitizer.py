@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/utils/data_sanitizer.py —— Data Sanitization & Type Safety Utilities
+neuraxis_testkit.utils.data_sanitizer — Data Sanitization & Type Safety Utilities
 
 Module Purpose:
     Provides atomic, stateless data sanitization functions.

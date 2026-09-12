@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/pytest_infra/manifest_loader.py - Load config/test_manifests/*.yaml and generate pytest parametrized data
+neuraxis_testkit.pytest_infra.manifest_loader - Load config/test_manifests/*.yaml and generate pytest parametrized data
 
 YAML format convention:
     scenario: dirty_data              # Scenario name

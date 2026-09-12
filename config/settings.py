@@ -1,5 +1,5 @@
 """
-config/settings.py -- Global Configuration
+config.settings - Global Configuration
 
 Centrally manages all environment-configurable items.
 """

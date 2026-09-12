@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/pytest_infra/resume.py - pytest checkpoint resumption based on historical test result CSV
+neuraxis_testkit.pytest_infra.resume - pytest checkpoint resumption based on historical test result CSV
 
 Responsibility boundary:
   - This file: Resumption at the pytest test flow level (skip tests that already PASSED in the previous run).

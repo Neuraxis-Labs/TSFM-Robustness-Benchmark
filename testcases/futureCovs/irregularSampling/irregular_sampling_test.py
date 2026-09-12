@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-irregular_sampling_test.py -- Irregular Sampling Robustness Test
+irregular_sampling_test.py - Irregular Sampling Robustness Test
 Scenario A: Variable Sampling Rate and Irregular Timestamp Test
 ====================================
 Industrial Context:

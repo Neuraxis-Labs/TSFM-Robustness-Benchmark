@@ -1,5 +1,5 @@
 """
-config/constants.py -- Global Constants Definition
+config.constants - Global Constants Definition
 
 Configure global constants, including model and time-series large model parameters.
 

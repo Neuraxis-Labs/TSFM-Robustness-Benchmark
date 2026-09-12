@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-frequency_mismatch_test.py -- Frequency Mismatch Test
+frequency_mismatch_test.py - Frequency Mismatch Test
 ====================================
 Industrial Scenarios:
   - Signal period changes caused by equipment speed or production changes.
@@ -208,7 +208,7 @@ def run_frequency_mismatch_test():
             cfg = mode_configs[mode_name]
 
             try:
-                # Call API through core/timecho.py wrapper
+                # Call API through core.timecho wrapper
                 pred, _, _ = forecast(
                     targets=df_history,
                     model_id=model_id,

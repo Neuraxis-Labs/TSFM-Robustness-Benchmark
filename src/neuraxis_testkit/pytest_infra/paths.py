@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/pytest_infra/paths.py - NeuraxisPaths + get_paths (pure data + accessor)
+neuraxis_testkit.pytest_infra.paths - NeuraxisPaths + get_paths (pure data + accessor)
 """
 from dataclasses import dataclass
 from pathlib import Path

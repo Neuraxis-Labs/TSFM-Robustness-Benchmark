@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit/pytest_infra/collection.py - Dynamic test case collection driven by YAML manifests
+neuraxis_testkit.pytest_infra.collection - Dynamic test case collection driven by YAML manifests
 
 Two working modes:
   A. Static test cases + manifest parameterization (recommended, write test_*.py under testcases/ normally)

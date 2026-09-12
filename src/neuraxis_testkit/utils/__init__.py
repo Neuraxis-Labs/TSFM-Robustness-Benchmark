@@ -1,12 +1,12 @@
 """
-neuraxis_testkit/utils - Neuraxis TestKit Common Utility Layer
+neuraxis_testkit.utils - Neuraxis TestKit Common Utility Layer
 
 This package provides stateless pure functions and generic entity wrappers, serving as the
 underlying support for the entire project. It currently includes:
 
 Modules:
 -------
-concurrent.py —— (Internal) Concurrent Utilities
+concurrent.py — (Internal) Concurrent Utilities
   Provides thread-safe primitives (FileLock, ProcessSafeCache) used internally.
 
 log — Logging Management
@@ -23,7 +23,7 @@ files.py — File Operation Utilities
 
 runner.py — Test Runner Core
   Test discovery (AST static analysis), single-case execution (timeout + retry), result tracking.
-  Provides the execution primitives shared by run.py, conftest.py, and core/resume.py.
+  Provides the execution primitives shared by neuraxis_testkit.pytest_infra.fixtures.
 
 Usage Conventions:
 --------------------------
