@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-test_dirty_v2.py — Dirty Data Robustness Test
+test_dirty_v2 - Dirty Data Robustness Test
 ====================================
 Test Purpose: Validate model's robustness against missing values and anomalous spikes
 

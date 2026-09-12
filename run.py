@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-TSFM-Robustness-Benchmark — Unified Entry Point
+TSFM-Robustness-Benchmark - Unified Entry Point
 
 Usage Examples:
   # Single test case

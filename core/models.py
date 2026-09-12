@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-core.models — Shared Data Models
+core.models - Shared Data Models
 
 Extracted from utils.runner to serve as the single source of truth for
 test-status / test-result / batch-report data structures.

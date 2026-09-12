@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit.utils.concurrent — Concurrent-Safety Common Module
+neuraxis_testkit.utils.concurrent - Concurrent-Safety Common Module
 ====================================
 Provides cross-process safe caches, locks, and counters supporting concurrent read/write operations.
 Designed for pytest-xdist multi-process testing environments.

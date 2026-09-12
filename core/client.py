@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-core.client — TimechoAI Client Factory
+core.client - TimechoAI Client Factory
 
 Purpose: Unified management of TimechoAIClient / TimechoAIAsyncClient instance
          creation, shielding API_KEY retrieval logic.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-core.metrics — Evaluation Metrics Calculator
+core.metrics - Evaluation Metrics Calculator
 
 Provides standard evaluation metrics for time series forecasting models.
 
