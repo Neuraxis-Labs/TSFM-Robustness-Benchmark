@@ -12,7 +12,6 @@ Key Fixtures:
     - entry_module:                Reference to current test module
   function:
     - test_runner:                 TestRunner instance (timeout/retry)
-    - assert_helper:               Assertion helper instance
     - result_recorder:             Result recorder (teardown auto-writes run-level CSV)
 """
 from __future__ import annotations
@@ -74,7 +73,15 @@ def test_runner(request):
     """
     TestRunner instance (function-level).
 
-    Provides timeout execution / retry / result tracking capabilities.
+    Provides execution-enhancement primitives for callables invoked inside a test case:
+      - run_with_timeout(): process-level timeout (hard kill across Win/Linux/macOS)
+      - run_with_retry():   retry with optional per-attempt timeout
+
+    Out of scope (handled by pytest / framework, do NOT go through this fixture):
+      - test discovery / execution scheduling / result determination / reporting
+      - per-case timeout and per-case retry (use pytest-timeout / pytest-rerunfailures)
+
+    Result tracking is handled automatically by test_recorder; no need to manipulate it through this fixture.
     """
     timeout_override = request.config.getoption("--test-timeout")
     return TestRunner(
