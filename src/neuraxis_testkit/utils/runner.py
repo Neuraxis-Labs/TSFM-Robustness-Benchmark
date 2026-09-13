@@ -1,329 +1,553 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit.utils.runner - Test Runner Core
-Core runner: test discovery + single-case execution + result tracking (in-memory)
+neuraxis_testkit.utils.runner - Test Runner Core (Lite Edition)
 
-Design Principles:
-  - This module is the [Execution Capability Layer], no CLI / argparse / print
-  - Only responsible for discovering test cases and executing their main() functions
-  - Both run.py and conftest.py reuse the capabilities of this module
-  - Batch scheduling is delegated to pytest, but the primitives for discovery / execution / result are defined here
+Test functions can invoke via the `test_runner` fixture:
+  - run_with_timeout(): process-level timeout execution
+  - run_with_retry():   retry execution (composable with timeout)
+
+
+Responsibility boundary:
+
+This module does NOT provide test discovery / execution scheduling /
+result determination / reporting — those are handled by pytest itself
+(collection / runtest protocol / test_recorder). This module only
+provides "optional execution-enhancement primitives usable inside a
+test case", avoiding redundancy or semantic conflicts with pytest's
+main flow.
+
+Cross-platform design notes (Win / Linux / macOS):
+
+1. Subprocesses uniformly use the "spawn" start method to avoid forking
+   and inheriting pytest runtime state.
+2. Timeout determination is based on proc.join(timeout) + is_alive(),
+   not on the queue; subprocess crashes (segfault / early exit) will not
+   be misreported as timeouts.
+3. Timeout / interrupt cleanup kills the entire process tree per platform:
+     - Windows: taskkill /F /T (falls back to proc.kill() on failure)
+     - POSIX:   os.setsid() inside the child establishes a new session /
+                process group; the parent killpg(SIGKILL)s it.
+                Note: if the child has not yet completed setsid (the
+                window right after start), its PGID equals the parent's,
+                so killpg would kill the entire pytest session — hence
+                the parent MUST verify PGID before calling killpg.
+                See _kill_process_tree.
+4. func/args/kwargs/return value must be picklable (hard spawn
+   constraint); violating this yields a readable error instead of the
+   obscure stack at the subprocess bootstrap.
+5. Subprocess exceptions (including BaseException: sys.exit /
+   KeyboardInterrupt / GeneratorExit) preferentially reconstruct the
+   original exception object (with a remote-traceback note), and degrade
+   to type + message + traceback strings when unpicklable. BaseException
+   is uniformly downgraded to RuntimeError to prevent escape that would
+   interrupt the pytest session.
+
+
+Cleanup on Ctrl+C / abnormal parent exit:
+
+The finally branch actively kills still-alive subprocesses — otherwise,
+when Python exits, the multiprocessing atexit handler would call an
+unbounded join() on non-daemon subprocesses; if the tested code is still
+running long tasks (LLM calls, etc.), the pytest main process would hang
+forever.
+
+Orphan-process window (known trade-off):
+
+Subprocesses use daemon=False to allow nested process spawning from
+within a test case (nested-timeout scenarios). The cost: when the
+parent is SIGKILLed or pytest itself crashes, the child, having left
+the parent's process group via os.setsid(), will remain as an orphan.
+This is a trade-off between "usability vs. crash safety", and usability
+has been chosen. See README "Orphan processes" for details.
 """
-
-import os, sys, ast, time, importlib, traceback
+from __future__ import annotations
+import os, sys, time, traceback, subprocess, signal, pickle
 import multiprocessing as mp
-from pathlib import Path
 from queue import Empty
 
-# Bootstrap (defensive)
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if str(_PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(_PROJECT_ROOT))
-
-from config.settings import PROJECT_ROOT
 from neuraxis_testkit.log import get_logger
-from neuraxis_testkit.pytest_infra.models import TestStatus, TestResult  # noqa: F401
 
-
-# ============================================================
-# 1. Test Discoverer — AST static analysis, zero side effects
-# ============================================================
-
-class TestDiscoverer:
-    """
-    Discovers test modules via AST static analysis.
-    Never imports modules — zero side effects.
-
-    Usage Examples:
-      - run.py --list: List all tests
-      - conftest.py: Can replace pytest_collect_file for pre-filtering
-      - core.resume: Determine the full scope for checkpoint recovery
-    """
-
-    ENTRY_POINTS = ("main", "run", "start")
-    TEST_PATTERNS = ("test_*.py", "*_test.py")
-
-    def __init__(self, logger=None):
-        self.logger = logger or get_logger("discoverer")
-        self.testcases_root = PROJECT_ROOT / "testcases"
-
-    def discover(
-        self,
-        directory: Path | None = None,
-        tags: list[str] | None = None,
-        skip: list[str] | None = None,
-    ) -> list[str]:
-        """
-        Discover all test modules and return a list of module paths.
-        """
-        search_root = Path(directory) if directory else self.testcases_root
-
-        if not search_root.exists():
-            self.logger.warning(f"Search directory does not exist: {search_root}")
-            return []
-
-        skip = skip or []
-        discovered = []
-
-        for py_file in sorted(search_root.rglob("*.py")):
-            if not self._is_test_file(py_file):
-                continue
-
-            module_path = self._file_to_module_path(py_file)
-            if module_path is None:
-                continue
-            if module_path in skip:
-                self.logger.info(f"Skipped (--skip): {module_path}")
-                continue
-            if tags and not self._match_tags(module_path, tags):
-                continue
-            if not self._has_entry_point_ast(py_file):
-                self.logger.debug(f"Skipped (no entry function): {module_path}")
-                continue
-
-            discovered.append(module_path)
-            self.logger.debug(f"Discovered: {module_path}")
-
-        self.logger.info(f"Total {len(discovered)} test module(s) discovered")
-        return discovered
-
-    def _is_test_file(self, py_file: Path) -> bool:
-        import fnmatch
-
-        name = py_file.name
-        if name.startswith("_"):
-            return False
-
-        return any(fnmatch.fnmatchcase(name, p) for p in self.TEST_PATTERNS)
-
-    def _file_to_module_path(self, py_file: Path) -> str | None:
-        try:
-            rel = py_file.resolve().relative_to(PROJECT_ROOT)
-            if rel.suffix == ".py":
-                rel = rel.with_suffix("")
-            return str(rel).replace("/", ".").replace(os.sep, ".")
-        except ValueError:
-            return None
-
-    def _match_tags(self, module_path: str, tags: list[str]) -> bool:
-        parts = module_path.replace(".", "/").split("/")
-        return any(tag in parts or tag in module_path for tag in tags)
-
-    def _has_entry_point_ast(self, py_file: Path) -> bool:
-        """
-        AST static analysis: check whether the file defines an entry function.
-        Never imports the module to avoid triggering top-level side effects.
-        """
-        try:
-            source = py_file.read_text(encoding="utf-8")
-            tree = ast.parse(source, filename=str(py_file))
-            top_funcs = {
-                node.name for node in ast.iter_child_nodes(tree)
-                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-            }
-            return any(ep in top_funcs for ep in self.ENTRY_POINTS)
-        except SyntaxError as synExp:
-            self.logger.error(f"Syntax error in {py_file}: {synExp}")
-            return False
-        except Exception as exp:
-            self.logger.error(f"AST analysis failed for {py_file}: {exp}")
-            return False
-
-
-# ============================================================
-# 2. Test Runner — single-case execution with timeout + retry
-# ============================================================
+logger = get_logger(__name__)
 
 class TimeoutError_(Exception):
-    """Test execution timed out"""
+    """
+    Test execution timed out.
+
+    NOTE: This exception inherits from Exception rather than the built-in
+    TimeoutError. Callers must catch it with `except TimeoutError_`;
+    `except TimeoutError` (built-in) will NOT catch it.
+    """
     pass
 
 
 class TestRunner:
     """
-    Test runner: imports and invokes the entry function of a single test module.
-    Entry function priority: main() > run() > start()
+    Generic test-execution primitives (no CLI, no discovery, no batch,no reporting).
+
+    Responsibilities:
+      1. Timeout execution: run_with_timeout() — cross-platform
+         process-level timeout.
+      2. Retry execution:   run_with_retry()   — retry logic, composable
+         with timeout.
+
+    pytest has taken over test discovery / execution / reporting; this
+    class only offers optional execution-enhancement capabilities.
     """
 
-    ENTRY_POINTS = ("main", "run", "start")
+    def __init__(self, logger=None, default_timeout: int = 0,
+                 default_retries: int = 0):
+        # Initialize the test runner and set default parameters.
+        self.logger = logger or get_logger("runner")  # Acquire logger
+        self.default_timeout = default_timeout        # Default timeout in seconds
+        self.default_retries = default_retries        # Default retry count
 
-    def __init__(self, logger=None, default_timeout: int = 0, default_retries: int = 0):
-        self.logger = logger or get_logger("runner")
-        self.default_timeout = default_timeout
-        self.default_retries = default_retries
+    # ============================================================
+    # Timeout execution (cross-platform, based on multiprocessing.Process + spawn)
+    # ============================================================
 
-    def run_single(self, module_path, timeout=None, retries=None):
-        timeout = timeout if timeout is not None else self.default_timeout
-        retries = retries if retries is not None else self.default_retries
-        result = TestResult(module_path=module_path)
-
-        # First, get the entry function name via AST (zero side effects)
-        entry_name = self._find_entry_name_ast(module_path)
-        if entry_name is None:
-            result.mark_end(TestStatus.SKIPPED, "No entry function found")
-            self.logger.info(str(result))
-            return result
-
-        attempt = 0
-        max_attempts = retries + 1
-
-        while attempt < max_attempts:
-            attempt += 1
-            result.retries = attempt - 1
-            result.mark_start()
-
-            try:
-                if timeout > 0:
-                    # Timeout mode: main process does not import, delegates directly to subprocess
-                    actual_duration = self._run_with_timeout(module_path, entry_name, timeout)
-                    result.end_time = time.time()
-                    result.duration = actual_duration
-                    result.status = TestStatus.PASSED
-                else:
-                    # Normal mode: main process imports and executes
-                    module = importlib.import_module(module_path)
-                    func = getattr(module, entry_name)
-                    func()
-
-                result.mark_end(TestStatus.PASSED)
-                self.logger.info(str(result))
-                return result
-
-            except TimeoutError_ as timeExp:
-                result.mark_end(TestStatus.TIMEOUT, str(timeExp))
-                if attempt < max_attempts:
-                    self.logger.error(str(result))
-                    continue
-                self.logger.error(str(result))
-                return result
-
-            except Exception as exp:
-                error_detail = traceback.format_exc()
-                if attempt < max_attempts:
-                    self.logger.error(str(result))
-                    self.logger.debug(error_detail)
-                    continue
-                result.mark_end(TestStatus.FAILED, str(exp))
-                self.logger.error(str(result))
-                self.logger.debug(error_detail)
-                return result
-        return result
-
-
-    def _find_entry_name_ast(self, module_path: str) -> str | None:
+    def run_with_timeout(self, func, args=(), kwargs=None, timeout=None):
         """
-        AST static analysis: find the entry function name.
-        Does not import the module to avoid triggering top-level side effects.
+        Cross-platform timeout execution of an arbitrary callable.
 
-        Returns: Entry function name (e.g., "main") or None (if not found)
+        timeout tri-state semantics (same as run_with_retry):
+          None -> use self.default_timeout
+          0    -> no limit for this call (overrides a nonzero default)
+          >0   -> use the given seconds (timing includes the subprocess spawn startup cost)
+
+        Args:
+            func: callable (must be a module-level function / picklable object, hard spawn constraint)
+            args:    positional arguments
+            kwargs:  keyword arguments
+            timeout: timeout in seconds
+
+        Returns:
+            The return value of `func`.
+
+        Raises:
+            TimeoutError_: timed out (process tree has been terminated)
+            RuntimeError:  subprocess exited abnormally without returning
+                           a result (crash / killed / unpicklable result);
+                           or the subprocess raised a BaseException
+                           (e.g. SystemExit)
+            TypeError:     func/args/kwargs are not picklable
+            Exception:     ordinary exceptions raised inside `func`
+                           (restored to the original type, with a remote
+                           traceback note attached)
         """
-        # module_path -> file path
-        parts = module_path.replace(".", "/")
-        py_file = PROJECT_ROOT / f"{parts}.py"
+        kwargs = kwargs or {}
+        # Tri-state: None=use default, 0=unlimited, >0=specified.
+        if timeout is None:
+            timeout = self.default_timeout
+        if timeout <= 0:
+            timeout = 0    # Explicitly unlimited
+        if not timeout:
+            return func(*args, **kwargs)
 
-        if not py_file.exists():
-            self.logger.warning(f"File not found: {py_file}")
-            return None
+        # Pre-check the spawn constraint: yield a readable error instead
+        # of the obscure stack at the subprocess bootstrap.
+        self._check_picklable(func, args, kwargs)
 
-        try:
-            source = py_file.read_text(encoding="utf-8")
-            tree = ast.parse(source, filename=str(py_file))
-            top_funcs = {
-                node.name for node in ast.iter_child_nodes(tree)
-                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-            }
-            # Return the first match based on priority
-            for ep in self.ENTRY_POINTS:
-                if ep in top_funcs:
-                    return ep
-            return None
-        except SyntaxError as synExp:
-            self.logger.warning(f"Syntax error in {py_file}: {synExp}")
-            return None
-        except Exception as exp:
-            self.logger.warning(f"AST analysis failed for {py_file}: {exp}")
-            return None
-
-
-    def _run_with_timeout(self, module_path: str, entry_name: str, timeout: int):
-        """
-        Implements timeout control using multiprocessing.Process (cross-platform).
-        The process is forcibly terminated on timeout, simulating the hard interrupt effect of the original SIGALRM.
-        """
-        result_queue = mp.Queue()
-        process = mp.Process(target=self._wrap_func, args=(module_path, entry_name, result_queue))
-        process.start()
-        process.join(timeout)
-
-        if process.is_alive():
-            process.terminate()
-            process.join()
-            raise TimeoutError_(f"Execution timed out ({timeout}s)")
-
-        if process.exitcode != 0:
+        # Daemon processes cannot spawn children — raise a readable error early.
+        if mp.current_process().daemon:
             raise RuntimeError(
-                f"Subprocess crashed (exitcode={process.exitcode})"
+                "Current process is a daemon process; cannot create subprocesses. "
+                "Please call run_with_timeout in a non-daemon context."
             )
 
+        ctx = mp.get_context("spawn")  # Cross-platform consistent, avoids fork inheriting pytest state / 跨平台一致, 避免 fork 继承 pytest 状态
+        queue = ctx.Queue()
+        proc = ctx.Process(
+            target=self._wrap_func_callable,
+            args=(func, args, kwargs, queue),
+            daemon=False,   # Non-daemon: allows test cases to spawn their own children (nested-timeout scenarios) / 非 daemon: 允许用例内部再派生进程 (嵌套超时场景)
+            # NOTE: Do not pass start_new_session here — that is a subprocess.
+            # Popen argument; multiprocessing.Process does not accept it.
+            # The POSIX independent session is established by os.setsid() inside the child.
+        )
+
         try:
-            result = result_queue.get_nowait()
-            if isinstance(result, dict):
-                if result.get("status") == "success" and "duration" in result:
-                    return result["duration"]
-                elif "type" in result:
-                    raise RuntimeError(
-                        f"{result['type']}: {result['message']}\n"
-                        f"{result['traceback']}"
+            # Timing starts before proc.start() to cover the spawn startup
+            # cost (Windows cold start can reach seconds).
+            deadline = time.monotonic() + timeout
+            proc.start()
+
+            remaining = max(0.0, deadline - time.monotonic())
+            proc.join(timeout=remaining)
+
+            if proc.is_alive():
+                self._kill_process_tree(proc)
+                raise TimeoutError_(
+                    f"Execution timed out: {getattr(func, '__name__', str(func))} "
+                    f"exceeded {timeout}s (including process startup cost); "
+                    f"the entire process tree has been terminated."
+                )
+
+            # The process has exited; the queue content is either already available or will never arrive.
+            try:
+                result = queue.get(timeout=1)
+            except (Empty, EOFError, OSError):
+                # Subprocess crashed (segfault / early exit) or result was
+                # not serializable — raise an explicit error, do NOT misreport it as a timeout.
+                raise RuntimeError(
+                    f"Subprocess exited abnormally (exitcode={proc.exitcode}) "
+                    f"without returning any result. Common causes: segfault / "
+                    f"os._exit() / unpicklable return value. See subprocess logs."
+                ) from None
+
+            if not isinstance(result, dict):
+                # Defensive: unexpected structure on the queue.
+                raise RuntimeError(
+                    f"Subprocess returned an unexpected result structure: {result!r}"
+                )
+
+            # Prefer restoring the original exception object (preserves precise `except` matching).
+            if "_exc" in result:
+                exc = result["_exc"]
+                if not isinstance(exc, Exception):
+                    # Fallback: BaseException must not escape as-is
+                    # (SystemExit would directly interrupt the pytest session).
+                    exc = RuntimeError(
+                        f"BaseException raised in subprocess "
+                        f"[{type(exc).__name__}]: {exc}"
                     )
-        except Empty:
-            pass
+
+                tb = result.get("_tb")
+                if tb:
+                    self.logger.error(f"Traceback of exception inside subprocess:\n{tb}")
+                    # Python 3.11+: attach the remote traceback to the exception so it prints after `except`.
+                    if hasattr(exc, "add_note"):
+                        try:
+                            exc.add_note(f"--- remote traceback ---\n{tb}")
+                        except Exception:
+                            pass
+                raise exc
+
+            # Unpicklable exception / BaseException: returned as string message.
+            if result.get("_error_type"):
+                tb = result.get("_tb")
+                if tb:
+                    self.logger.error(f"Traceback of exception inside subprocess:\n{tb}")
+                raise RuntimeError(
+                    f"Exception inside subprocess [{result['_error_type']}]: "
+                    f"{result.get('_error_msg', '')}"
+                )
+
+            return result.get("_value")
         finally:
-            result_queue.close()
-            result_queue.join_thread()
-        return None
+            # ── Cleanup on Ctrl+C / abnormal parent exit ──
+            # KeyboardInterrupt interrupts proc.join(); on entering finally,
+            # the subprocess may still be alive. Without an active kill,
+            # Python's exit path triggers the multiprocessing atexit handler
+            # (_exit_function), which performs an unbounded p.join() on
+            # non-daemon children — if the tested code is still running a
+            # long task (LLM call, etc.), the pytest main process hangs forever.
+            try:
+                if proc.is_alive():
+                    self._kill_process_tree(proc)
+            except Exception:
+                pass
+
+            # Detach the queue first (skip waiting for the feeder thread to
+            # flush, avoiding a secondary block on the interrupt path), then
+            # close to release the fd; finally close proc to release the sentinel.
+            try:
+                queue.cancel_join_thread()
+            except Exception:
+                pass
+            try:
+                queue.close()
+                queue.join_thread()
+            except Exception:
+                pass
+            try:
+                proc.close()
+            except Exception:
+                # proc.close() raises ValueError while still alive; the kill branch about should
+                # already have handled that, but no extreme case should disturb the main flow.
+                pass
 
     @staticmethod
-    def _wrap_func(module_path: str, entry_name: str, queue):
+    def _wrap_func_callable(func, args, kwargs, queue):
+        """
+        Subprocess wrapper: executes `func` and returns the result via the queue.
+
+        Return protocol (dict): 回传协议 (dict)
+          {"_value": value}           -> success
+          {"_exc": exc, "_tb": tb}    -> picklable Exception, restored as-is
+          {"_error_type": str, "_error_msg": str, "_tb": str} -> unpicklable exception / BaseException
+        """
+        # POSIX: establish an independent session / process group so the
+        # parent can killpg the whole process tree in one call. Must be
+        # done inside the child — multiprocessing.Process does not accept
+        # start_new_session (that is subprocess.Popen's). Note: before
+        # setsid completes, this process's PGID still equals the parent's;
+        # the parent must verify PGID before killing (see _kill_process_tree).
+        if os.name == "posix":
+            try:
+                os.setsid()
+            except OSError as exp:
+                # Rare: e.g., some container/sandbox environments disallow
+                # setsid. Consequence: subsequent killpg degrades to
+                # single-process kill, and grandchildren may remain. Print
+                # a line to stderr so the silent degradation is visible.
+                try:
+                    print(
+                        f"[runner] os.setsid() failed in child: {exp!r}; "
+                        f"process-tree cleanup will degrade to single-process kill",
+                        file=sys.stderr,
+                    )
+                except Exception:
+                    pass
+
         try:
-            if str(_PROJECT_ROOT) not in sys.path:
-                sys.path.insert(0, str(_PROJECT_ROOT))
+            value = func(*args, **kwargs)
+        except BaseException as exp:
+            # Covers sys.exit / KeyboardInterrupt / GeneratorExit and other escaped exceptions.
+            payload = TestRunner._pack_exception(exp)
+        else:
+            # Perform a round-trip picklability check on the return value:
+            # pure pickle.dumps misses "dumpable but not loadable" cases (e.g., custom __reduce__).
+            try:
+                pickle.loads(pickle.dumps(value))
+            except Exception as exp:
+                payload = {
+                    "_error_type": "UnpicklableResult",
+                    "_error_msg": f"Return value not picklable (round-trip check failed): {exp!r}",
+                    "_tb": "",
+                }
+            else:
+                payload = {"_value": value}
 
-            start_time = time.time()
-            module = importlib.import_module(module_path)
-            func = getattr(module, entry_name)
-            func()
-            duration = time.time() - start_time
+        try:
+            queue.put(payload)
+        except Exception:
+            # Fallback: payload itself failed to put (extremely rare); deliver a readable error.
+            try:
+                queue.put({
+                    "_error_type": "QueuePutError",
+                    "_error_msg": "Failed to return subprocess result",
+                    "_tb": "",
+                })
+            except Exception:
+                pass  # Queue is completely unusable; rely on the parent's exitcode branch / 队列彻底不可用, 只能靠父进程的 exitcode 分支兜底
 
-            queue.put({"duration": duration, "status": "success"})
-        except Exception as exp:
-            queue.put({
-                "type": type(exp).__name__,
-                "message": str(exp),
-                "traceback": traceback.format_exc()
-            })  # Pass exception details to the main process
+    @staticmethod
+    def _pack_exception(exp: BaseException) -> dict:
+        """
+        Pack an exception into a returnable structure.
 
+        Rules:
+          - Only Exception subclasses are attempted for as-is return
+            (the parent can then `except` the original type).
+          - BaseException (SystemExit / KeyboardInterrupt / GeneratorExit)
+            is uniformly downgraded to a string, so it cannot be raised
+            as-is in the parent and interrupt the pytest session.
+          - A failed round-trip check also downgrades to a string.
+        """
+        tb = traceback.format_exc()
+        if isinstance(exp, Exception):
+            try:
+                pickle.loads(pickle.dumps(exp))
+            except Exception:
+                pass
+            else:
+                return {"_exc": exp, "_tb": tb}
+        return {"_error_type": type(exp).__name__, "_error_msg": str(exp), "_tb": tb}
 
-# ============================================================
-# 3. Path Resolution Utility
-# ============================================================
+    @staticmethod
+    def _check_picklable(func, args, kwargs) -> None:
+        """
+        Under spawn mode, func/args/kwargs must be picklable; check in
+        advance to yield a readable error.
 
-def parse_module_path(raw_path: str) -> str:
-    """
-    Resolve a user-provided path into a standard module path.
-    Supports:
-      - testcases.futureCovs.dirtyData.test_dirty
-      - ./testcases/futureCovs/dirtyData/test_dirty.py
-      - testcases/futureCovs/dirtyData/test_dirty.py
-    """
-    if raw_path.startswith("./") or raw_path.endswith(".py") or "/" in raw_path:
-        file_path = Path(raw_path).resolve()
-        if not file_path.exists():
-            raise FileNotFoundError(f"File does not exist: {file_path}")
-        rel_path = file_path.relative_to(PROJECT_ROOT)
-        if rel_path.suffix == ".py":
-            rel_path = rel_path.with_suffix("")
-        module_path = str(rel_path).replace("/", ".").replace(os.sep, ".")
-    else:
-        module_path = raw_path
-    return module_path
+        NOTE: This really serializes args/kwargs once. If arguments
+        contain large objects, this adds overhead; the spawn phase will
+        serialize them again. Keeping it simple for now — could be
+        narrowed to only checking `func` if performance becomes an issue.
+        """
+        checks = (("func", func), ("args", args), ("kwargs", kwargs))
+        for name, obj in checks:
+            try:
+                pickle.loads(pickle.dumps(obj))
+            except Exception as exp:
+                raise TypeError(
+                    f"run_with_timeout: {name} is not picklable "
+                    f"(hard spawn constraint): {exp}. "
+                    f"Use a module-level function; avoid lambda / closure / "
+                    f"locally-defined function / objects holding connections or locks."
+                ) from exp
+
+    @staticmethod
+    def _kill_process_tree(proc) -> None:
+        """
+        Terminate the entire process tree per platform, to prevent
+        grandchildren from becoming orphans (especially severe on Windows).
+        """
+        if sys.platform == "win32":
+            # TerminateProcess kills only a single process; use
+            # taskkill /T to kill the whole tree. taskkill may be absent
+            # from PATH / lack permissions / return non-zero — all need a fallback.
+            killed = False
+            try:
+                r = subprocess.run(
+                    ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                    capture_output=True, timeout=10,
+                )
+                killed = (r.returncode == 0)
+                if not killed:
+                    stderr = (r.stderr or b"").decode(errors="replace").strip()
+                    logger.warning(
+                        "taskkill returned non-zero (rc=%s, pid=%s): %s",
+                        r.returncode, proc.pid, stderr,
+                    )
+            except (FileNotFoundError, subprocess.TimeoutExpired) as exp:
+                logger.warning(
+                    "taskkill unavailable or timed out (pid=%s): %s, "
+                    "falling back to proc.kill()",
+                    proc.pid, exp,
+                )
+            except Exception as exp:
+                logger.warning(
+                    "taskkill raised an exception (pid=%s): %s, "
+                    "falling back to proc.kill()",
+                    proc.pid, exp,
+                )
+            if not killed:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+        else:
+            # POSIX: the child has already called os.setsid() in _wrap_func_callable,
+            # establishing an independent process group;
+            # killpg takes out the whole group (including grandchildren) in one shot.
+            #
+            # DEFENSE: during the brief window right after the child is started
+            # (before the spawn interpreter boots and unpickles func/args/kwargs),
+            # setsid has not yet run, so os.getpgid(proc.pid) returns the PARENT's own PGID — killpg
+            # would SIGKILL the entire pytest session, appearing as a silent self-kill.
+            # Therefore we MUST verify PGID: if it equals the parent's PGID, degrade to single-process kill.
+            try:
+                child_pgid = os.getpgid(proc.pid)
+                parent_pgid = os.getpgrp()
+            except (ProcessLookupError, PermissionError):
+                # Child already gone, or insufficient permission: kill only itself.
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+            else:
+                if child_pgid == parent_pgid:
+                    # Window period: the child has not yet setsid; killpg
+                    # would kill the parent -> degrade to single-process
+                    # kill. Consequence: grandchildren spawned by the child
+                    # may remain (acceptable — safety first).
+                    logger.warning(
+                        "Subprocess %s has not yet established an independent "
+                        "process group (PGID=%s equals parent's); degrading to "
+                        "single-process kill; grandchildren may remain.",
+                        proc.pid, child_pgid,
+                    )
+                    try:
+                        proc.kill()
+                    except Exception:
+                        pass
+                else:
+                    try:
+                        os.killpg(child_pgid, signal.SIGKILL)
+                    except (ProcessLookupError, PermissionError):
+                        try:
+                            proc.kill()
+                        except Exception:
+                            pass
+                    except Exception:
+                        try:
+                            proc.kill()
+                        except Exception:
+                            pass
+
+        proc.join(timeout=5)
+        if proc.is_alive():
+            logger.warning(
+                "Process %s still alive after kill; manual inspection may be required.",
+                proc.pid,
+            )
+
+    # ============================================================
+    # Retry execution (composable with timeout: each attempt is independently wrapped in a process-level timeout)
+    # ============================================================
+
+    def run_with_retry(self, func, args=(), kwargs=None,
+                       retries=None, delay=0, timeout=None):
+        """
+        Execution with retry.
+
+        timeout tri-state semantics (same as run_with_timeout):
+          None -> use self.default_timeout
+          0    -> unlimited (each attempt runs in the current process,
+                  no spawn overhead)
+          >0   -> each attempt is an independent subprocess; the function
+                  must NOT rely on in-process state across attempts
+
+        NOTE: TimeoutError_ inherits from Exception, so a timeout will
+        also trigger a retry — for slow, intermittently failing LLM
+        cases this is the intended behavior; if "no retry on timeout" is
+        desired, catch and distinguish at the caller's level.
+
+        Args:
+            func:    callable
+            args:    positional arguments
+            kwargs:  keyword arguments
+            retries: retry count (None -> default_retries; 0 -> no retry)
+            delay:   seconds between retries
+            timeout: per-attempt timeout in seconds (see tri-state above)
+
+        Returns:
+            The return value of `func`.
+
+        Raises:
+            The exception from the last attempt.
+        """
+        kwargs = kwargs or {}
+        retries = retries if retries is not None else self.default_retries
+        # Guard against negative / non-integer: range(0) doesn't loop -> raise None -> TypeError.
+        try:
+            retries = max(0, int(retries))
+        except (TypeError, ValueError):
+            retries = 0
+
+        # Tri-state: None=use default, 0=unlimited, >0=specified.
+        if timeout is None:
+            timeout = self.default_timeout
+        if timeout <= 0:
+            timeout = 0    # Explicitly unlimited
+
+        last_exc: BaseException | None = None
+        for attempt in range(retries + 1):
+            try:
+                if timeout:
+                    return self.run_with_timeout(func, args=args, kwargs=kwargs, timeout=timeout)
+                return func(*args, **kwargs)
+            except Exception as exp:
+                last_exc = exp
+                if attempt < retries:
+                    self.logger.warning(
+                        f"Attempt {attempt + 1}/{retries + 1} failed: {exp}, "
+                        f"retrying in {delay}s..."
+                    )
+                    if delay > 0:
+                        time.sleep(delay)
+                else:
+                    raise
+
+        # Pure defensive: theoretically unreachable (loop either raises or returns).
+        raise last_exc if last_exc is not None else RuntimeError(
+            "run_with_retry exited abnormally"
+        )
+

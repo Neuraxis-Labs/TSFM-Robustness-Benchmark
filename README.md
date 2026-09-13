@@ -62,7 +62,7 @@ project/
 │           ├── concurrent.py        # Concurrency-safe utilities (portalocker wrapper)
 │           ├── data_sanitizer.py    # Data cleaning and type safety utilities
 │           ├── files.py             # File operation utilities
-│           └── runner.py            # Core test execution primitives (AST static discovery + single test execution + in-memory result tracking)
+│           └── runner.py            # Callable execution primitives (process-level timeout + retry)
 │
 ├── testcases/                   # LLM business test cases
 │   └── futureCovs/
@@ -87,6 +87,8 @@ project/
 Key file descriptions:
 
 - `conftest.py`: Repository-level pytest adaptation entry point. It declares project-level CLI options such as `--project-root`, `--output-dir`, `--results-dir`, `--logs-dir`, and sets a custom report header. Common pytest hooks/fixtures are automatically discovered by `neuraxis_testkit.pytest_infra` via the `pytest11` entry point, and do not need to be manually bridged in `conftest.py`.
+- `utils/runner.py` only provides process-level timeout / retry primitives for callables invoked *inside* a test case. 
+It is **not** a test entry point; test discovery, execution, and reporting are owned by pytest and `pytest_infra/test_recorder.py`.
 - `pyproject.toml`: Project configuration, dependency declarations, pytest configuration, and `pytest11` plugin entry points.
 - `src/neuraxis_testkit/`: SDK source directory, which will be split into an independent project later.
 - `testcases/`: Business test cases in the current repository, which will be split into an independent business test repository later.

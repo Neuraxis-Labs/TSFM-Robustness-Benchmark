@@ -30,7 +30,7 @@ project/
 │   ├── resume.py                  # 策略控制器 (限流判断/断点续跑)
 │   └── timecho.py                 # Timecho API 客户端
 │
-├── env/                         # 环境变量配置目录，供 `config/settings.py` 通过 load_dotenv() 加载
+├── env/                         # 环境变量配置目录,供 `config/settings.py` 通过 load_dotenv() 加载
 │   └── .env.example               # 环境变量示例文件
 │
 ├── src/                         # SDK 源码目录
@@ -62,7 +62,7 @@ project/
 │          ├── concurrent.py           # 并发安全工具 (portalocker 封装)
 │          ├── data_sanitizer.py       # 数据清洗与类型安全工具
 │          ├── files.py                # 文件操作工具
-│          └── runner.py               # 测试运行核心原语 (AST 静态发现 + 单用例执行 + 内存态结果追踪)
+│          └── runner.py               # 可调用对象执行原语(进程级超时 + 重试)
 │
 ├── testcases/                  # 大模型业务测试用例
 │   └── futureCovs/
@@ -71,7 +71,7 @@ project/
 │           └── data/             # 测试数据文件(用例依赖的输入)
 │               └── test_dirty_s0.csv
 │
-├── outputs/                    # 运行时生成：日志、结果、HTML 报告
+├── outputs/                    # 运行时生成: 日志、结果、HTML 报告
 │   ├── results/                  # 业务结果(CSV/JSON)
 │   ├── reports/                  # pytest报告(HTML/XML)
 │   ├── analytics/                # 模型分析结果
@@ -84,16 +84,17 @@ project/
 └── .python-version
 ```
 
-关键文件说明：
+关键文件说明: 
 
-- `conftest.py`：仓库级 pytest 适配入口。用于声明项目级 CLI 选项，例如 `--project-root`、`--output-dir`、`--results-dir`、`--logs-dir`，并设置自定义报告头。通用 pytest hooks/fixtures 由 `neuraxis_testkit.pytest_infra` 通过 `pytest11` entry point 自动发现，不需要在 `conftest.py` 中手动桥接。
-- `pyproject.toml`：项目配置、依赖声明、pytest 配置、`pytest11` 插件入口。
-- `src/neuraxis_testkit/`：SDK 源码目录，后续会拆分为独立项目。
-- `testcases/`：当前仓库中的业务测试用例，后续会拆分为独立业务测试仓库。
+- `conftest.py`: 仓库级 pytest 适配入口.用于声明项目级 CLI 选项,例如 `--project-root`、`--output-dir`、`--results-dir`、`--logs-dir`,并设置自定义报告头.通用 pytest hooks/fixtures 由 `neuraxis_testkit.pytest_infra` 通过 `pytest11` entry point 自动发现,不需要在 `conftest.py` 中手动桥接.
+- `utils/runner.py` 仅提供"在用例内部调用可调用对象"时的进程级超时 / 重试原语,**不是测试入口**.用例发现、执行、报告由 pytest 与 `pytest_infra/test_recorder.py` 接管.
+- `pyproject.toml`: 项目配置、依赖声明、pytest 配置、`pytest11` 插件入口.
+- `src/neuraxis_testkit/`: SDK 源码目录,后续会拆分为独立项目.
+- `testcases/`: 当前仓库中的业务测试用例,后续会拆分为独立业务测试仓库.
 
 ## 3. 测试流程
 
-1. **配置初始化**: `config/settings.py` 通过 `load_dotenv()` 加载 `env/` 目录下的环境变量文件(如 `.env`)，并导出全局路径与运行配置
+1. **配置初始化**: `config/settings.py` 通过 `load_dotenv()` 加载 `env/` 目录下的环境变量文件(如 `.env`),并导出全局路径与运行配置
 2. **模型初始化**: 使用提供的 API 密钥对 TimechoAI 模型进行初始化.
 3. **测试执行**: 根据提供的命令行参数执行指定的测试流程.
 4. **结果输出**: 将测试结果输出至控制台或指定文件.
@@ -142,29 +143,29 @@ deactivate
 
 ### 4.4 安装项目依赖
 
-推荐使用 editable 模式安装本项目。`-e` 表示 editable，即“可编辑安装”，源码变更后无需重新安装即可生效。
+推荐使用 editable 模式安装本项目.`-e` 表示 editable,即“可编辑安装”,源码变更后无需重新安装即可生效.
 
-**开发/完整安装，推荐：**
+**开发/完整安装,推荐: **
 
 ```bash
 python -m pip install -e ".[test]"
 ```
 
-该命令会安装：
+该命令会安装: 
 
-- 运行依赖：`timecho_ai`、`pandas`、`requests`、`pytest`、`portalocker`、`python-dotenv`、`pyyaml`
-- 开发依赖：`pytest-xdist`、`pytest-html`、`pytest-cov`、`pytest-timeout`、`pytest-mock`、`pytest-randomly`、`pre-commit`
+- 运行依赖: `timecho_ai`、`pandas`、`requests`、`pytest`、`portalocker`、`python-dotenv`、`pyyaml`
+- 开发依赖: `pytest-xdist`、`pytest-html`、`pytest-cov`、`pytest-timeout`、`pytest-mock`、`pytest-randomly`、`pre-commit`
 
-**仅安装运行依赖：**
+**仅安装运行依赖: **
 
 ```bash
 python -m pip install -e .
 ```
 
-**Windows 平台提示：**
+**Windows 平台提示: **
 
-`pyproject.toml` 中声明的是 `portalocker>=4.3.0`，它 **不会自动安装** `portalocker[win32]` 扩展。  
-如果 Windows 下跨进程文件锁异常，请额外安装：
+`pyproject.toml` 中声明的是 `portalocker>=4.3.0`,它 **不会自动安装** `portalocker[win32]` 扩展.  
+如果 Windows 下跨进程文件锁异常,请额外安装: 
 
 ```bash
 python -m pip install "portalocker[win32]"
@@ -172,19 +173,19 @@ python -m pip install "portalocker[win32]"
 
 ### 4.5 刷新 entry points 与验证插件注册
 
-当 `pyproject.toml` 中的 `[project.entry-points.pytest11]` 发生变化，或需要刷新本包元数据但不改动其他依赖时，可执行：
+当 `pyproject.toml` 中的 `[project.entry-points.pytest11]` 发生变化,或需要刷新本包元数据但不改动其他依赖时,可执行: 
 
 ```bash
 python -m pip install -e ".[test]" --force-reinstall --no-deps
 ```
 
-安装后建议验证 pytest 插件是否注册成功：
+安装后建议验证 pytest 插件是否注册成功: 
 
 ```bash
 python -c "import importlib.metadata as m; [print(ep) for ep in m.entry_points(group='pytest11') if 'neuraxis' in ep.name]"
 ```
 
-预期能看到类似输出：
+预期能看到类似输出: 
 
 ```text
 EntryPoint(name='neuraxis_testkit_hooks', value='neuraxis_testkit.pytest_infra.hooks', group='pytest11')
@@ -193,40 +194,40 @@ EntryPoint(name='neuraxis_testkit_fixtures', value='neuraxis_testkit.pytest_infr
 
 ## 5. 快速运行
 
-项目已切换为 **pytest 原生模式**，不再使用 `run.py`。推荐统一使用 `python -m pytest`，以确保使用当前虚拟环境中的 Python 解释器。
+项目已切换为 **pytest 原生模式**,不再使用 `run.py`.推荐统一使用 `python -m pytest`,以确保使用当前虚拟环境中的 Python 解释器.
 
-**运行全部测试：**
+**运行全部测试: **
 
 ```bash
 python -m pytest
 ```
 
-**按模块名或关键字运行：**
+**按模块名或关键字运行: **
 
 ```bash
 python -m pytest -k <module_name>
 ```
 
-**按文件路径运行：**
+**按文件路径运行: **
 
 ```bash
 python -m pytest testcases/path/to/test_file.py
 ```
 
-**按标记运行：**
+**按标记运行: **
 
 ```bash
 python -m pytest -m smoke
 python -m pytest -m "not slow"
 ```
 
-**并发运行：**
+**并发运行: **
 
 ```bash
 python -m pytest -n auto
 ```
 
-**覆盖路径配置：**
+**覆盖路径配置: **
 
 ```bash
 python -m pytest \
@@ -236,7 +237,7 @@ python -m pytest \
   --logs-dir ./outputs/logs
 ```
 
-默认 HTML 报告路径由 `pyproject.toml` 中的 `addopts` 控制：
+默认 HTML 报告路径由 `pyproject.toml` 中的 `addopts` 控制: 
 
 ```text
 outputs/reports/report.html
@@ -244,19 +245,19 @@ outputs/reports/report.html
 
 ## 6. pytest 配置说明
 
-`pyproject.toml` 中的 `[tool.pytest.ini_options]` 已配置：
+`pyproject.toml` 中的 `[tool.pytest.ini_options]` 已配置: 
 
 - `testpaths = ["testcases"]`
-- 测试文件匹配：`test_*.py`
-- 测试类匹配：`Test*`
-- 测试函数匹配：`test_*`
+- 测试文件匹配: `test_*.py`
+- 测试类匹配: `Test*`
+- 测试函数匹配: `test_*`
 - 默认启用详细输出、HTML 报告、严格标记、短 traceback
-- 默认失败上限：`--maxfail=5`
+- 默认失败上限: `--maxfail=5`
 - 日志 CLI 输出开启
 - 自定义标记注册
 - 自定义 session label 与日志 basename
 
-`pytest11` entry points：
+`pytest11` entry points: 
 
 ```toml
 [project.entry-points.pytest11]
@@ -264,7 +265,7 @@ neuraxis_testkit_hooks = "neuraxis_testkit.pytest_infra.hooks"
 neuraxis_testkit_fixtures = "neuraxis_testkit.pytest_infra.fixtures"
 ```
 
-因此，只要通过 `pip install -e .` 或正式安装方式安装了本项目，pytest 就会自动加载 `neuraxis_testkit.pytest_infra` 中的 hooks 与 fixtures。
+因此,只要通过 `pip install -e .` 或正式安装方式安装了本项目,pytest 就会自动加载 `neuraxis_testkit.pytest_infra` 中的 hooks 与 fixtures.
 
 ## 7. 测试目标
 

@@ -25,9 +25,9 @@ files.py - File Operation Utilities
   Provides functionality for reading, writing, appending, and status checking for files (CSV/JSON).
   Unified error handling and path management.
 
-runner.py - Test Runner Core
-  Test discovery (AST static analysis), single-case execution (timeout + retry), result tracking.
-  Provides the execution primitives shared by neuraxis_testkit.pytest_infra.fixtures.
+runner.py - Execution Primitives
+  Process-level timeout and retry primitives for callables invoked inside test cases.
+  pytest owns discovery/execution/reporting/result-tracking; this module is not an entry point.
 
 Usage Conventions:
 --------------------------
@@ -36,10 +36,10 @@ Usage Conventions:
 Usage Examples:
 -----------------------------
 >>> # Utils layer usage (for core layer developers)
->>> from neuraxis_testkit.log import get_logger, setup_logging
+>>> from neuraxis_testkit.assertions import assert_almost_equal, assert_no_nan_inf, assert_in_range, assert_length
 >>> from neuraxis_testkit.utils.data_sanitizer import clean_nan_values, safe_float
 >>> from neuraxis_testkit.utils.files import save_to_csv, append_to_csv
->>> from neuraxis_testkit.utils.runner import parse_module_path
+>>> from neuraxis_testkit.utils.runner import run_with_timeout, run_test_with_retry
 """
 
 __all__ = [
