@@ -9,39 +9,61 @@ The TSFM Robustness Benchmark is a systematic testing tool designed to evaluate 
 - The system adopts a clear layered architecture, decoupling business logic, infrastructure utilities, and test execution.
 - The middle infrastructure layer natively supports **cross-platform execution** (Windows / macOS / Linux) and **concurrent execution** (distributed test scheduling via `pytest-xdist`, plus process-level concurrency control).
 
-## 2. Directory & File Structure
+## 2. Directory & File Specifications
 
-The project follows a standard layered architecture:
+The project follows a standard layered architecture, with the directory structure as follows:
 
-- `config/`: Global Configuration Management Module
-  - `constants.py`: Global constant definitions.
-  - `settings.py`: Global environment variables (e.g., `TIMECHO_API_KEY`).
-- `core/`: Core Business Components Layer (Encapsulates logic and state management)
-  - `client.py`: Low-level client connection (internal bridging module; business code should access it indirectly via timecho.py).
-  - `metrics.py`: Evaluation and computation metrics.
-  - `models.py`: Shared data models (TestStatus, TestResult, BatchReport).
-  - `results.py`: Test result manager (batch buffering/persistence).
-  - `resume.py`: Strategy controller (rate-limiting/checkpoint resume).
-  - `timecho.py`: API interaction wrapper.
-- `src/`: **SDK source directory**
-  - `neuraxis_testkit/`: Test toolkit
-    - `log/`: Logging management module.
-      - `config.py`: Logging variable configuration.
-      - `context.py`: Context managers (`LogLevelContext`).
-      - `core.py`: Core `Logger` class.
-      - `decorators.py`: Decorators (`log_execution`, `log_time`).
-      - `filters.py`: Log filters (`ModuleLevelFilter`, `IgnoredLoggerFilter`).
-      - `formatters.py`: Log formatters (`ColoredFormatter`).
-      - `handlers.py`: Handler management.
-    - `utils/`: Basic utilities layer
-      - `assertions.py`: Generic Assertions Library (Pure Logic).
-      - `concurrent.py`: Concurrency control and process coordination module (internal bridge module).
-      - `data_sanitizer.py`: Data sanitization and type-safety utilities.
-      - `files.py`: File operation utilities.
-      - `runner.py`: Core test-running primitives (AST-based static discovery + single-case execution + in-memory result tracking).
-- `testcases/`: Business Scenario Test Cases
-- `README.md`: Project documentation, providing an overview, usage instructions, and notes.
-- `run.py`: **Unified project entry point**, responsible for bootstrapping `sys.path` and launching specific test scripts by module name or file path.
+```text
+project/
+├── config/                      # Global Configuration Management Module
+│   ├── constants.py               # Time-Series Large Model Constant Definition
+│   └── settings.py                # Global environment variables (e.g., `TIMECHO_API_KEY`)
+│
+├── core/                        # Business core common components layer (encapsulates business logic and state management)
+│   ├── client.py                  # Low-level client connection (get_timecho_client, etc.)
+│   ├── metrics.py                 # Evaluation metrics calculation
+│   ├── models.py                  # Shared data models (TestStatus, TestResult, BatchReport)
+│   ├── results.py                 # Test result manager (batch buffering/persistence)
+│   ├── resume.py                  # Strategy controller (rate-limiting/checkpoint resume)
+│   └── timecho.py                 # Timecho API interaction wrapper
+│
+├── src/                         # SDK source directory
+│   └── neuraxis_testkit/          # Test toolkit
+│       ├── log/                     # Logging management
+│       │   ├── __init__.py            # Unified interface exposed externally
+│       │   ├── config.py              # Logging variable configuration
+│       │   ├── context.py             # Context managers (`LogLevelContext`)
+│       │   ├── core.py                # Core `Logger` class
+│       │   ├── decorators.py          # Decorators (`log_execution`, `log_time`)
+│       │   ├── filters.py             # Log filters (`ModuleLevelFilter`, `IgnoredLoggerFilter`)
+│       │   ├── formatters.py          # Log formatters (`ColoredFormatter`)
+│       │   └── handlers.py            # Handler management
+│       └── utils/                   # Common utilities layer
+│          ├── __init__.py             # Unified interface exposed externally
+│          ├── assertions.py           # Generic Assertions Library (Pure Logic)
+│          ├── concurrent.py           # Concurrent Security Tool (Portalocker encapsulation)
+│          ├── data_sanitizer.py       # Data cleaning and type-safety utilities
+│          ├── files.py                # File operation utilities
+│          └── runner.py               # Core test-running primitives (AST-based static discovery + single-case execution + in-memory result tracking)
+│
+├── testcases/                  # Time-Series Large Model TestCases
+│   └── futureCovs/
+│       └── dirtyData/
+│           ├── test_dirty.py
+│           └── data/             # Test data files (inputs required by test cases)
+│               └── test_dirty_s0.csv
+│
+├── outputs/                     # Generated at runtime: logs, results, HTML reports
+│   ├── results/                   # Business results (CSV/JSON)
+│   ├── reports/                   # pytest reports (HTML/XML)
+│   ├── analytics/                 # Model analysis results
+│   └── logs/                      # Log files
+│       └── tsfm_benchmark_20260824.log  # Filename dynamically includes execution date
+│
+├── run.py                      # **Unified project entry point**, responsible for bootstrapping `sys.path` and launching specific test scripts by module name or file path
+├── README.md                   # Project documentation (English), providing project overview, usage, notes, etc.
+└── .python-version
+```
 
 ## 3. Testing Workflow
 
@@ -50,7 +72,7 @@ The project follows a standard layered architecture:
 3. **Test Execution**: Execute specific testing workflows based on command-line arguments.
 4. **Result Output**: Output test results to the console or specified files.
 
-## 4. Setup & Installation
+## 4. Commands and Installation
 
 - Python **3.12 or higher**
 - Virtual environment recommended
@@ -86,7 +108,7 @@ source .venv/bin/activate
 > Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 > ```
 
-### 4.3 Quit Virtual Environment
+### 4.3 Deactivate the Virtual Environment
 
 ```bash
 deactivate
