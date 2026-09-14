@@ -73,7 +73,7 @@ project/
 │
 ├── outputs/                    # 运行时生成: 日志、结果、HTML 报告
 │   ├── results/                  # 业务结果(CSV/JSON)
-│   ├── reports/                  # pytest报告(HTML/XML)
+│   ├── reports/                  # pytest报告(HTML+CSV)
 │   ├── analytics/                # 模型分析结果
 │   └── logs/                     # 日志文件
 │       └── tsfm_benchmark_20260824.log  # 文件名动态加上执行日期

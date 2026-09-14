@@ -73,7 +73,7 @@ project/
 │
 ├── outputs/                     # Generated at runtime: logs, results, HTML reports
 │   ├── results/                   # Business results (CSV/JSON)
-│   ├── reports/                   # pytest reports (HTML/XML)
+│   ├── reports/                   # pytest reports (HTML+CSV)
 │   ├── analytics/                 # Model analysis results
 │   └── logs/                      # Log files
 │       └── tsfm_benchmark_20260824.log  # Filename dynamically includes execution date

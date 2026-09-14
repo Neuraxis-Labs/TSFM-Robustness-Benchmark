@@ -13,9 +13,12 @@ Hooks
   pytest_sessionstart/finish    Session logs / cache record last_csv / summary
 
 Output Contract:
-  outputs/reports/   Run-level artifacts: report_<ts>.csv (--csv-output can override)
-  outputs/results/   Business-side interface results (managed by business, framework only creates directory but does not write)
   outputs/logs/      Framework logs
+  outputs/reports/   Run-level artifacts (single truth resolved in pytest_configure):
+    report_<ts>.csv   default; --csv-output fully overrides (path used as-is, /dev/null disables writing)
+    report_<ts>.html  default when pytest-html installed; --html=path keeps user's dir & basename,
+                      run timestamp always appended (path/to/my.html -> path/to/my_<ts>.html)
+  outputs/results/   Business-side interface results (managed by business, framework only creates directory but does not write)
 """
 from __future__ import annotations
 
@@ -82,7 +85,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 # ================================================================
 # 2. Pytest Configuration / Pytest 配置阶段
 # ================================================================
-
+@pytest.hookimpl(tryfirst=True)
 def pytest_configure(config: pytest.Config) -> None:
     """
     Register markers and initialize resume logic.
@@ -110,7 +113,8 @@ def pytest_configure(config: pytest.Config) -> None:
 
     log_basename = config.getini("log_file_name_prefix") or "neuraxis_testkit"
     log_file_path = logs / f"{log_basename}_{run_ts[:8]}.log"
-    set_log_file(log_file_path) 
+    set_log_file(log_file_path)
+    _apply_run_ts_to_html_report(config, reports, run_ts)
 
     paths = NeuraxisPaths(
         root=root, output=output, logs=logs, log_file=log_file_path,
@@ -145,6 +149,33 @@ def pytest_configure(config: pytest.Config) -> None:
     }
     for name, desc in markers.items():
         config.addinivalue_line("markers", f"{name}: {desc}")
+
+def _apply_run_ts_to_html_report(config: pytest.Config, reports: Path, run_ts: str) -> None:
+    """
+    Rewrite or set --html path to carry the run timestamp.
+    - --html=report.html                  -> report_<ts>.html                    (resolved relative to CWD, same as pytest-html native behavior
+    - --html=outputs/reports/report.html  -> outputs/reports/report_<ts>.html    (resolved relative to CWD)
+    - --html=/abs/report.html             -> /abs/report_<ts>.html               (preserved as-is)
+    - --html not provided                 -> ${output_dir}/reports/report_<ts>.html  (framework default, anchored to rootpath)
+    """
+    if not config.pluginmanager.hasplugin("html"):
+        return
+    htmlpath = getattr(config.option, "htmlpath", None)
+
+    if htmlpath:
+        p = Path(htmlpath)
+        if p.stem.endswith(f"_{run_ts}"):   # Exact idempotency check
+            return
+        # Only modify the file name; keep the directory as-is (no relocation for absolute/relative paths;
+        # relative paths are resolved by pytest-html relative to CWD) 
+        new_path = p.parent / f"{p.stem}_{run_ts}{p.suffix}"
+    else:
+        # --html not provided: inject framework default path (anchored to rootpath, independent of CWD)
+        new_path = reports / f"report_{run_ts}.html"
+
+    ensure_dir(new_path.parent)
+    config.option.htmlpath = str(new_path)
+
 
 # ============================================================
 # 3. Hooks: Result capture / Resume / Session
