@@ -1,23 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit.pytest_infra.hooks - pytest hooks (no fixtures)  (无 fixture)
+neuraxis_testkit.pytest_infra.hooks - pytest hooks (no fixtures) 
 
 Registered via pytest11 entry_points in pyproject.toml, automatically effective after business-side pip install.
 
 Hooks
   pytest_addoption              Register command-line options (--csv-output / --resume / --test-timeout)
-  pytest_configure              Path resolution (single source of truth) / create directories / log file / markers / resume loading
+  pytest_configure              Path resolution (single source of truth) / create directories / log file / report files / markers / resume loading
   pytest_runtest_makereport     Capture results -> write outputs/reports/report_<ts>.csv
   pytest_collection_modifyitems Resume: skip completed test cases
   pytest_sessionstart/finish    Session logs / cache record last_csv / summary
 
 Output Contract:
   outputs/logs/      Framework logs
-  outputs/reports/   Run-level artifacts (single truth resolved in pytest_configure):
-    report_<ts>.csv   default; --csv-output fully overrides (path used as-is, /dev/null disables writing)
-    report_<ts>.html  default when pytest-html installed; --html=path keeps user's dir & basename,
-                      run timestamp always appended (path/to/my.html -> path/to/my_<ts>.html)
+  outputs/reports/   Run-level artifacts (single source of truth resolved in pytest_configure):
+    report_<ts>.csv  Default; --csv-output fully overrides (path is used as-is, /dev/null disables writing).
+                     If --html is passed and --csv-output is not, CSV follows HTML (same dir & stem, .csv suffix).
+                     Note: if --html points to a transient directory, a later --resume may fail to find the CSV and fall back
+                     to a full run. Use --resume-file to pin an explicit source, or keep reports under outputs/reports/.
+    report_<ts>.html Default when pytest-html is installed and --html is NOT passed; carries run timestamp.
+                     If --csv-output=path/my.csv is passed and --html is not, HTML follows CSV (same dir & stem, .html suffix).
+                     If --csv-output=/dev/null is passed and --html is not, HTML falls back to framework default.
   outputs/results/   Business-side interface results (managed by business, framework only creates directory but does not write)
 """
 from __future__ import annotations
@@ -114,7 +118,7 @@ def pytest_configure(config: pytest.Config) -> None:
     log_basename = config.getini("log_file_name_prefix") or "neuraxis_testkit"
     log_file_path = logs / f"{log_basename}_{run_ts[:8]}.log"
     set_log_file(log_file_path)
-    _apply_run_ts_to_html_report(config, reports, run_ts)
+    _inject_html_path(config, reports, run_ts)
 
     paths = NeuraxisPaths(
         root=root, output=output, logs=logs, log_file=log_file_path,
@@ -150,31 +154,17 @@ def pytest_configure(config: pytest.Config) -> None:
     for name, desc in markers.items():
         config.addinivalue_line("markers", f"{name}: {desc}")
 
-def _apply_run_ts_to_html_report(config: pytest.Config, reports: Path, run_ts: str) -> None:
+def _inject_html_path(config: pytest.Config, html_path: Path) -> None:
     """
-    Rewrite or set --html path to carry the run timestamp.
-    - --html=report.html                  -> report_<ts>.html                    (resolved relative to CWD, same as pytest-html native behavior
-    - --html=outputs/reports/report.html  -> outputs/reports/report_<ts>.html    (resolved relative to CWD)
-    - --html=/abs/report.html             -> /abs/report_<ts>.html               (preserved as-is)
-    - --html not provided                 -> ${output_dir}/reports/report_<ts>.html  (framework default, anchored to rootpath)
+    Inject a concrete HTML path into pytest-html's option, creating its parent dir.
+
+    Note: self-contained output is NOT forced; users may pass --self-contained-html to inline CSS and avoid the assets/ directory.
     """
     if not config.pluginmanager.hasplugin("html"):
-        return
-    htmlpath = getattr(config.option, "htmlpath", None)
+        return    # pytest-html is not installed; injection is meaningless, skip
 
-    if htmlpath:
-        p = Path(htmlpath)
-        if p.stem.endswith(f"_{run_ts}"):   # Exact idempotency check
-            return
-        # Only modify the file name; keep the directory as-is (no relocation for absolute/relative paths;
-        # relative paths are resolved by pytest-html relative to CWD) 
-        new_path = p.parent / f"{p.stem}_{run_ts}{p.suffix}"
-    else:
-        # --html not provided: inject framework default path (anchored to rootpath, independent of CWD)
-        new_path = reports / f"report_{run_ts}.html"
-
-    ensure_dir(new_path.parent)
-    config.option.htmlpath = str(new_path)
+    ensure_dir(html_path.parent)
+    config.option.htmlpath = str(html_path)
 
 
 # ============================================================
