@@ -5,7 +5,7 @@ irregular_sampling_test.py - Irregular Sampling Robustness Test
 Scenario A: Variable Sampling Rate and Irregular Timestamp Test
 ====================================
 Industrial Context:
-  On-site industrial sensors do not sample at equal intervals. When aggregated 
+  On-site industrial sensors do not sample at equal intervals. When aggregated
   by gateways and written to time-series databases, the following occurs:
     - Timestamp jitter (clock drift)
     - Out-of-order data arrival (network retransmission)
@@ -13,12 +13,12 @@ Industrial Context:
     - Periodic packet loss and delayed retransmission
 
 Test Objective:
-  Verify that the SDK correctly handles the timestamp semantics of 'time_col', 
+  Verify that the SDK correctly handles the timestamp semantics of 'time_col',
   rather than simply processing data based on row index order.
     Core Hypothesis:
-    - If the SDK ignores timestamps and processes solely by row order, prediction 
+    - If the SDK ignores timestamps and processes solely by row order, prediction
       results across different timestamp scenarios should be identical.
-    - If the SDK correctly interprets timestamps, variations in timestamps should 
+    - If the SDK correctly interprets timestamps, variations in timestamps should
       lead to differences in prediction results.
 
 Test Methodology:

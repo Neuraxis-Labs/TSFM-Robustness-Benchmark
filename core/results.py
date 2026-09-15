@@ -425,7 +425,7 @@ def flush_all_results() -> dict[str, int]:
     return _buffer_manager.flush_all()
 
 
-def get_results(results_data: list[dict[str, Any]], 
+def get_results(results_data: list[dict[str, Any]],
                model_id: str,
                scene_prefix: str,
                pass_name: str = "Preprocessed") -> dict[str, Any] | None:
@@ -451,13 +451,13 @@ def get_results(results_data: list[dict[str, Any]],
         {'model_id': 'Timer-3.5', 'scene': 'S0-Clean[Preprocessed]', 'pass_name': 'Preprocessed', 'mae': 0.5}
     """
     for record in results_data:
-        if (record.get("model_id") == model_id 
+        if (record.get("model_id") == model_id
             and record.get("scene", "").startswith(scene_prefix)
             and record.get("pass_name") == pass_name):
             return record
     return None
 
-def get_results_by_model(results_data: list[dict[str, Any]], 
+def get_results_by_model(results_data: list[dict[str, Any]],
                          model_id: str) -> list[dict[str, Any]]:
     """
     Retrieve all results for a specific model.
@@ -501,7 +501,7 @@ def get_results_by_scene(results_data: list[dict[str, Any]],
     """
     return [record for record in results_data if record.get("scene", "").startswith(scene_prefix)]
 
-def get_results_by_passname(results_data: list[dict[str, Any]], 
+def get_results_by_passname(results_data: list[dict[str, Any]],
                         pass_name: str) -> list[dict[str, Any]]:
     """
     Retrieve all results for a specific pass.

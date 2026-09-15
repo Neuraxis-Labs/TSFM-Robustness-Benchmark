@@ -57,7 +57,7 @@ print()
 
 # ============================================================
 # Iterate each model to test covariate support
-# 
+#
 # Test methodology:
 # 1. Pass real future covariates to each model
 # 2. Models that support covariates will use them and return predictions
