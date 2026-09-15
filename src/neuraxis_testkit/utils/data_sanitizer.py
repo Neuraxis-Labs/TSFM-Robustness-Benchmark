@@ -20,12 +20,12 @@ Module Position in Architecture:
 Usage Examples:
 --------------
 >>> from neuraxis_testkit.utils.data_sanitizer import clean_nan_values, safe_float
->>> 
+>>>
 >>> # Clean data before saving to JSON
 >>> data = {"mae": 0.5, "rmse": float('nan')}
 >>> clean_data = clean_nan_values(data)
 >>> # Result: {"mae": 0.5, "rmse": None}  (JSON serializable)
->>> 
+>>>
 >>> # Safe conversion
 >>> val = safe_float("N/A", default=0.0)  # Returns 0.0 instead of raising error
 
@@ -37,9 +37,7 @@ import json, re
 import numpy as np
 from typing import Any
 
-def clean_nan_values(obj: Any, 
-                      _depth: int = 0, 
-                      _max_depth: int = 100) -> Any:
+def clean_nan_values(obj: Any, _depth: int = 0, _max_depth: int = 100) -> Any:
     """
     Recursively clean NaN/Inf values, converting them to None (JSON-compatible).
 

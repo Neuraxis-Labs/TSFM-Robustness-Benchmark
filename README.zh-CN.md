@@ -84,7 +84,7 @@ project/
 └── .python-version
 ```
 
-关键文件说明: 
+关键文件说明:
 
 - `conftest.py`: 仓库级 pytest 适配入口.用于声明项目级 CLI 选项,例如 `--project-root`、`--output-dir`、`--results-dir`、`--logs-dir`,并设置自定义报告头.通用 pytest hooks/fixtures 由 `neuraxis_testkit.pytest_infra` 通过 `pytest11` entry point 自动发现,不需要在 `conftest.py` 中手动桥接.
 - `utils/runner.py` 仅提供"在用例内部调用可调用对象"时的进程级超时 / 重试原语,**不是测试入口**.用例发现、执行、报告由 pytest 与 `pytest_infra/test_recorder.py` 接管.
@@ -151,7 +151,7 @@ deactivate
 python -m pip install -e ".[test]"
 ```
 
-该命令会安装: 
+该命令会安装:
 
 - 运行依赖: `timecho_ai`、`pandas`、`requests`、`pytest`、`portalocker`、`python-dotenv`、`pyyaml`
 - 开发依赖: `pytest-xdist`、`pytest-html`、`pytest-cov`、`pytest-timeout`、`pytest-mock`、`pytest-randomly`、`pre-commit`
@@ -164,8 +164,8 @@ python -m pip install -e .
 
 **Windows 平台提示: **
 
-`pyproject.toml` 中声明的是 `portalocker>=4.3.0`,它 **不会自动安装** `portalocker[win32]` 扩展.  
-如果 Windows 下跨进程文件锁异常,请额外安装: 
+`pyproject.toml` 中声明的是 `portalocker>=4.3.0`,它 **不会自动安装** `portalocker[win32]` 扩展.
+如果 Windows 下跨进程文件锁异常,请额外安装:
 
 ```bash
 python -m pip install "portalocker[win32]"
@@ -173,19 +173,19 @@ python -m pip install "portalocker[win32]"
 
 ### 4.5 刷新 entry points 与验证插件注册
 
-当 `pyproject.toml` 中的 `[project.entry-points.pytest11]` 发生变化,或需要刷新本包元数据但不改动其他依赖时,可执行: 
+当 `pyproject.toml` 中的 `[project.entry-points.pytest11]` 发生变化,或需要刷新本包元数据但不改动其他依赖时,可执行:
 
 ```bash
 python -m pip install -e ".[test]" --force-reinstall --no-deps
 ```
 
-安装后建议验证 pytest 插件是否注册成功: 
+安装后建议验证 pytest 插件是否注册成功:
 
 ```bash
 python -c "import importlib.metadata as m; [print(ep) for ep in m.entry_points(group='pytest11') if 'neuraxis' in ep.name]"
 ```
 
-预期能看到类似输出: 
+预期能看到类似输出:
 
 ```text
 EntryPoint(name='neuraxis_testkit_hooks', value='neuraxis_testkit.pytest_infra.hooks', group='pytest11')
@@ -237,7 +237,7 @@ python -m pytest \
   --logs-dir ./outputs/logs
 ```
 
-默认 HTML 报告路径由 `pyproject.toml` 中的 `addopts` 控制: 
+默认 HTML 报告路径由 `pyproject.toml` 中的 `addopts` 控制:
 
 ```text
 outputs/reports/report.html
@@ -245,7 +245,7 @@ outputs/reports/report.html
 
 ## 6. pytest 配置说明
 
-`pyproject.toml` 中的 `[tool.pytest.ini_options]` 已配置: 
+`pyproject.toml` 中的 `[tool.pytest.ini_options]` 已配置:
 
 - `testpaths = ["testcases"]`
 - 测试文件匹配: `test_*.py`
@@ -257,7 +257,7 @@ outputs/reports/report.html
 - 自定义标记注册
 - 自定义 session label 与日志 basename
 
-`pytest11` entry points: 
+`pytest11` entry points:
 
 ```toml
 [project.entry-points.pytest11]

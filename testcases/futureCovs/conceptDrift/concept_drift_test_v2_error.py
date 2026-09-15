@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-concept_drift_test_v2_error.py - Concept Drift Test (XYZ Scenario, Error Report) 概念漂移测试(XYZ场景) 
+concept_drift_test_v2_error.py - Concept Drift Test (XYZ Scenario, Error Report) 概念漂移测试(XYZ场景)
 ====================================
 Industrial Context:
-  Equipment start-stop cycles, load steps, and seasonal operating condition switches cause inconsistencies between 
+  Equipment start-stop cycles, load steps, and seasonal operating condition switches cause inconsistencies between
   training data and prediction target distributions. It is necessary to evaluate the model's resistance to distribution drift.
   设备启停、负载阶跃、季节性工况切换会导致训练数据与预测目标分布不一致. 需要评估模型对分布漂移的抵抗力.
 
@@ -29,7 +29,7 @@ Test Method:
   4. 保存预测结果
 
 Test Objective:
-  Construct data with a stationary training segment and a prediction segment exhibiting distribution drift to test 
+  Construct data with a stationary training segment and a prediction segment exhibiting distribution drift to test
   the model's resistance to three typical drift modes. Verify whether a long context window becomes a burden under drift conditions.
   构造训练段平稳、预测段发生分布漂移的数据, 检验模型对三种典型漂移
   模式的抵抗力, 并验证长上下文窗口在漂移下是否反而是负担.
@@ -196,8 +196,8 @@ def build_scenarios():
         elif drift_type == 'phase':
             ramp_drift = ramp_base_trend + BASE_SEASONAL_AMP * np.sin(2 * np.pi * ramp_t / BASE_SEASONAL_PERIOD + DRIFT_PHASE_SHIFT * weight) + ramp_base_noise
         elif drift_type == 'compound':
-            ramp_drift = (ramp_base_trend + DRIFT_MEAN_SHIFT * weight + 
-                          BASE_SEASONAL_AMP * np.sin(2 * np.pi * ramp_t / BASE_SEASONAL_PERIOD + DRIFT_PHASE_SHIFT * weight) + 
+            ramp_drift = (ramp_base_trend + DRIFT_MEAN_SHIFT * weight +
+                          BASE_SEASONAL_AMP * np.sin(2 * np.pi * ramp_t / BASE_SEASONAL_PERIOD + DRIFT_PHASE_SHIFT * weight) +
                           ramp_base_noise * (1 + (DRIFT_NOISE_MULTIPLIER - 1) * weight))
 
         history[stable_len:] = ramp_drift.round(4)

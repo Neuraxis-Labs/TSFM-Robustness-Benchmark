@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-neuraxis_testkit.pytest_infra.hooks - pytest hooks (no fixtures) 
+neuraxis_testkit.pytest_infra.hooks - pytest hooks (no fixtures)
 
 Registered via pytest11 entry_points in pyproject.toml, automatically effective after business-side pip install.
 

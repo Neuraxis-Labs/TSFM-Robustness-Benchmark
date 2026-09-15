@@ -16,7 +16,7 @@ Usage Examples:
         min_length=1,
     )
 
-Responsibilities:
+Responsibility boundary:
   - Only handles test-process concerns: loading fixture data, orchestrating call -> extract -> validate flow.
   - Does not implement concrete assertion logic. Generic assertions live in utils/assertions.py; business assertions live in the business layer.
   - May use pytest APIs (e.g. pytest.fail). This is the essential difference from the utils layer.

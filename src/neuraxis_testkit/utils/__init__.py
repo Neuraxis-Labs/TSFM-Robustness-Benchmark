@@ -13,10 +13,6 @@ assertions.py - Generic Assertions Library (Pure Logic)
 concurrent.py - (Internal) Concurrent Utilities
   Provides thread-safe primitives (FileLock, ProcessSafeCache) used internally.
 
-log - Logging Management
-  Centralized logging configuration and management.
-  Provides a unified interface for log initialization, handler management, and context propagation.
-
 data_sanitizer.py - Data Sanitization & Type Safety
   Handles NaN/Inf values for JSON compatibility and provides robust type conversion.
   Ensures data integrity before persistence or transmission.

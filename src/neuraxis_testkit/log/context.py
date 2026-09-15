@@ -40,7 +40,7 @@ class LogLevelContext:
         return self.logger
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
-        # Logic Check: Using 'is not None' is safer than truthy check 
+        # Logic Check: Using 'is not None' is safer than truthy check
         # in case the level is 0 (NOTSET).
         if self._old_level is not None:
             self.logger.setLevel(self._old_level)   # NOTSET -> restores parent inheritance

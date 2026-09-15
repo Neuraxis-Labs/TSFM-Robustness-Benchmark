@@ -301,7 +301,7 @@ def run_frequency_mismatch_test():
             ratio = mae / mae_base if mae_base > 0 else 0
             degradation = (ratio - 1) * 100
 
-            print(f"    {mode_name:<25s}  MAE: {mae:.4f}  (Degradation {degradation:+.1f}%)")            
+            print(f"    {mode_name:<25s}  MAE: {mae:.4f}  (Degradation {degradation:+.1f}%)")
 
 
     # --------------------------------------------------------
