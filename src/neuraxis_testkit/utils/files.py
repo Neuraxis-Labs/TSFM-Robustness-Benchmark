@@ -243,7 +243,6 @@ def read_csv_to_dataframe(
         raise CSVFileError("result_csv_path_file parameter cannot be empty")
 
     file_path = Path(result_csv_path_file)
-
     if not file_path.exists():
         raise CSVFileError(f"File does not exist: {file_path}")
 

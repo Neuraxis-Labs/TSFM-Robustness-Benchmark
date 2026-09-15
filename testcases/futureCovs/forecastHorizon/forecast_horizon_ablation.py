@@ -5,8 +5,8 @@ Test Principle: Fix the input length and vary the forecast horizon to observe ch
 
 Test Objective:
   Fix input length to 512 and gradually increase output_length (16->32->64->128->256).
-  Observe the decay pattern of prediction accuracy over the forecast horizon under 
-  both normal and drift scenarios, providing quantitative evidence for the 
+  Observe the decay pattern of prediction accuracy over the forecast horizon under
+  both normal and drift scenarios, providing quantitative evidence for the
   "Safe Forecast Window" in industrial deployment.
 
 Total calls: 20 (2 models * 5 lengths * 2 scenarios)

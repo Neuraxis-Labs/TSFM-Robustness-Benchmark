@@ -14,13 +14,13 @@ Platform Support:
 
 Design Notes:
     `portalocker` relies on OS-level advisory locks (`fcntl.flock` / `LockFileEx`).
-    Lock information is stored in the kernel; the OS automatically reclaims file descriptors (fd) 
-    and releases locks upon process crashes. 
+    Lock information is stored in the kernel; the OS automatically reclaims
+    file descriptors (fd) and releases locks upon process crashes.
     Therefore, stale lock cleanup is theoretically unnecessary.
 
-    However, as a defensive measure, `_clean_stale_lock()` employs atomic rename + PID checking 
+    However, as a defensive measure, `_clean_stale_lock()` employs atomic rename + PID checking
     to handle residual lock files in extreme scenarios (e.g., fd not closed properly due to SIGKILL).
-    This method deletes the `.stale` file regardless of expiration status and does not restore 
+    This method deletes the `.stale` file regardless of expiration status and does not restore
     the original path, avoiding overwriting new lock files potentially created by other processes.
 
 Create Date: 2026/08/25.
@@ -115,7 +115,7 @@ class FileLock:
     def __del__(self):
         """
         Ensure lock is released upon destruction.
-        Module-level variables may already be destroyed during interpreter shutdown, 
+        Module-level variables may already be destroyed during interpreter shutdown,
         so this acts only as a fallback.
         Primary reliance is on the atexit callback for lock release.
         """

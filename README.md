@@ -56,7 +56,6 @@ project/
 ├── outputs/                     # Generated at runtime: logs, results, HTML reports
 │   ├── results/                   # Business results (CSV/JSON)
 │   ├── reports/                   # pytest reports (HTML/XML)
-│   ├── analytics/                 # Model analysis results
 │   └── logs/                      # Log files
 │       └── tsfm_benchmark_20260824.log  # Filename dynamically includes execution date
 │
@@ -124,7 +123,7 @@ After activating the virtual environment, execute the following command to insta
 python -m pip install timecho-ai pandas pytest pytest-xdist portalocker
 ```
 
-> ** Platform Note:** 
+> ** Platform Note: **
 > If you are running the code on Windows, it is recommended to install `portalocker` with the Windows extension to ensure proper cross-process file locking:
 > ```bash
 > python -m pip install "portalocker[win32]"
@@ -143,7 +142,7 @@ python run.py <path/to/test_file.py>
 ```
 
 ## 6. Testing Objectives
-- Edge case exploration: Systematically verify the engineering robustness of the model against boundary conditions such as complex queries, replica inconsistencies, and out-of-order time-series writes.  
+- Edge case exploration: Systematically verify the engineering robustness of the model against boundary conditions such as complex queries, replica inconsistencies, and out-of-order time-series writes.
 - Defensive architecture verification: Apply strict engineering standards to test the model's degradation behavior and recovery capabilities under non-ideal inputs.
 
 ## 7. Scope of Testing Disclaimer

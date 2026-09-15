@@ -58,7 +58,6 @@ project/
 ├── outputs/                    # 运行时生成: 日志、结果、HTML 报告
 │   ├── results/                  # 业务结果(CSV/JSON)
 │   ├── reports/                  # pytest报告(HTML/XML)
-│   ├── analytics/                # 模型分析结果
 │   └── logs/                     # 日志文件
 │       └── tsfm_benchmark_20260824.log  # 文件名动态加上执行日期
 │
@@ -126,7 +125,7 @@ deactivate
 python -m pip install timecho-ai pandas pytest pytest-xdist portalocker
 ```
 
-> ** 平台提示:** 
+> ** 平台提示: **
 > 如果您的代码在 Windows 上运行, 为了确保跨进程文件锁的正常工作, 建议安装带有 Windows 扩展的 `portalocker`:
 > ```bash
 > python -m pip install "portalocker[win32]"

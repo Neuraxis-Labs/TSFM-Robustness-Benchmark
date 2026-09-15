@@ -35,7 +35,7 @@ class LogLevelContext:
         return self.logger
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Logic Check: Using 'is not None' is safer than truthy check 
+        # Logic Check: Using 'is not None' is safer than truthy check
         # in case the level is 0 (NOTSET).
         if self.old_level is not None:
             self.logger.set_level(self.old_level)

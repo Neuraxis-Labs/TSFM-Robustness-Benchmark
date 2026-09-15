@@ -60,7 +60,7 @@ def is_rate_limited(error_msg: str) -> bool:
 
 
 def should_skip_test(
-    completed_keys: set[tuple[Any, ...]], 
+    completed_keys: set[tuple[Any, ...]],
     test_key: tuple[Any, ...],
     failed_keys: set[tuple[Any, ...]] = None
 ) -> bool:
@@ -92,7 +92,7 @@ def should_skip_test(
 
 
 def build_completed_keys(
-    records: list[dict], 
+    records: list[dict],
     key_columns: list[str]
 ) -> tuple[set[tuple[Any, ...]], set[tuple[Any, ...]]]:
     """

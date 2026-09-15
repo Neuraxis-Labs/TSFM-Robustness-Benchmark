@@ -142,9 +142,9 @@ class Logger:
 
             # Create handlers
             handlers = create_handlers(
-                level, 
-                LOG_CONSOLE_OUTPUT, 
-                LOG_FILE_OUTPUT, 
+                level,
+                LOG_CONSOLE_OUTPUT,
+                LOG_FILE_OUTPUT,
                 LOG_USE_COLOR
             )
 

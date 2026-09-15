@@ -102,8 +102,8 @@ def _get_completed_tests():
     return completed_keys, retry_keys, perm_fail_count
 
 
-def _run_single_test(model_id, scene_name, csv_file, ground_truth, future_cov, 
-                     completed_keys, retry_keys, api_call_count, success_count, 
+def _run_single_test(model_id, scene_name, csv_file, ground_truth, future_cov,
+                     completed_keys, retry_keys, api_call_count, success_count,
                      fail_count, skipped_nan_count):
     """Run test for a single scenario and model"""
     logger.info(f"  Scenario: {scene_name} ({csv_file})")

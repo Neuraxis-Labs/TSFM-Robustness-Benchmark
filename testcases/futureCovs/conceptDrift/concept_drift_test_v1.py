@@ -4,7 +4,7 @@
 concept_drift_test_v1.py - Concept Drift Test (Simplified Edition)
 ====================================
 Industrial Context:
-  Equipment start-stop cycles, load steps, and seasonal operating condition switches cause inconsistencies between 
+  Equipment start-stop cycles, load steps, and seasonal operating condition switches cause inconsistencies between
   training data and prediction target distributions. It is necessary to evaluate the model's resistance to distribution drift.
 
 Test Principle:
@@ -20,7 +20,7 @@ Test Method:
   4. Save prediction results.
 
 Test Objective:
-  Construct data with a stationary training segment and a prediction segment exhibiting distribution drift to test 
+  Construct data with a stationary training segment and a prediction segment exhibiting distribution drift to test
   the model's resistance to three typical drift modes. Verify whether a long context window becomes a burden under drift conditions.
 
 Author: Janesong
