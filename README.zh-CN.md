@@ -23,6 +23,7 @@ project/
 │   └── settings.py              # 全局环境变量配置(全局路径配置等)
 │
 ├── core/                        # 业务核心通用组件层 (封装业务逻辑与状态管理)
+│   ├── assertions.py              # 业务断言,依赖 neuraxis_testkit.utils.assertions
 │   ├── client.py                  # 底层客户端连接(get_timecho_client等)
 │   ├── metrics.py                 # 评估指标计算
 │   ├── models.py                  # 业务数据模型(请求/响应)
@@ -74,7 +75,6 @@ project/
 ├── outputs/                    # 运行时生成: 日志、结果、HTML 报告
 │   ├── results/                  # 业务结果(CSV/JSON)
 │   ├── reports/                  # pytest报告(HTML+CSV)
-│   ├── analytics/                # 模型分析结果
 │   └── logs/                     # 日志文件
 │       └── tsfm_benchmark_20260824.log  # 文件名动态加上执行日期
 │

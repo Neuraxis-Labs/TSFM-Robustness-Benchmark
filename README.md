@@ -23,6 +23,7 @@ project/
 │   └── settings.py              # Global environment variable configuration (global path configuration, etc.)
 │
 ├── core/                        # Business core common components layer (encapsulates business logic and state management)
+│   ├── assertions.py              # Business assertions -> depends on neuraxis_testkit.utils.assertions
 │   ├── client.py                  # Low-level client connection (get_timecho_client, etc.)
 │   ├── metrics.py                 # Evaluation metrics calculation
 │   ├── models.py                  # Business data models (request/response)
@@ -36,33 +37,33 @@ project/
 ├── src/                         # SDK source directory
 │   └── neuraxis_testkit/          # Test toolkit
 │       ├── log/                     # Logging management
-│       │   ├── __init__.py          # Unified interface exposed externally
-│       │   ├── config.py            # Variable configuration
-│       │   ├── context.py           # Context manager (LogLevelContext)
-│       │   ├── core.py              # Core Logger class
-│       │   ├── decorators.py        # Decorators (log_execution, log_time)
-│       │   ├── filters.py           # Filters (ModuleLevelFilter, IgnoredLoggerFilter)
-│       │   ├── formatters.py        # Formatters (ColoredFormatter)
-│       │   └── logging.yaml         # Logging configuration
-│       ├── pytest_infra/          # Pytest infrastructure layer
-│       │   ├── __init__.py          # Unified interface exposed externally
-│       │   ├── collection.py        # Dynamic collection (calls manifest_loader)
-│       │   ├── fixtures.py          # All @pytest.fixture
-│       │   ├── hooks.py             # All hookimpl (including pytest_addoption / pytest_configure)
-│       │   ├── manifest_loader.py   # Loads YAML manifests and generates parametrization
-│       │   ├── models.py            # Test-specific data models (e.g., test case parameters)
-│       │   ├── paths.py             # NeuraxisPaths + get_paths (pure data + accessors)
-│       │   ├── resume.py            # Resume-from-breakpoint logic (based on historical results)
-│       │   ├── session_manager.py   # Test session management (shared resources, locks) SessionFileLock + SessionManager
-│       │   ├── test_helpers.py      # pytest test-process helpers (glue layer)
-│       │   └── test_recorder.py     # Test result recorder
-│       └── utils/                 # Common utilities layer
-│           ├── __init__.py          # Unified interface exposed externally
-│           ├── assertions.py        # Generic Assertions Library (Pure Logic)
-│           ├── concurrent.py        # Concurrency-safe utilities (portalocker wrapper)
-│           ├── data_sanitizer.py    # Data cleaning and type safety utilities
-│           ├── files.py             # File operation utilities
-│           └── runner.py            # Callable execution primitives (process-level timeout + retry)
+│       │   ├── __init__.py            # Unified interface exposed externally
+│       │   ├── config.py              # Variable configuration
+│       │   ├── context.py             # Context manager (LogLevelContext)
+│       │   ├── core.py                # Core Logger class
+│       │   ├── decorators.py          # Decorators (log_execution, log_time)
+│       │   ├── filters.py             # Filters (ModuleLevelFilter, IgnoredLoggerFilter)
+│       │   ├── formatters.py          # Formatters (ColoredFormatter)
+│       │   └── logging.yaml           # Logging configuration
+│       ├── pytest_infra/            # Pytest infrastructure layer
+│       │   ├── __init__.py            # Unified interface exposed externally
+│       │   ├── collection.py          # Dynamic collection (calls manifest_loader)
+│       │   ├── fixtures.py            # All @pytest.fixture
+│       │   ├── hooks.py               # All hookimpl (including pytest_addoption / pytest_configure)
+│       │   ├── manifest_loader.py     # Loads YAML manifests and generates parametrization
+│       │   ├── models.py              # Test-specific data models (e.g., test case parameters)
+│       │   ├── paths.py               # NeuraxisPaths + get_paths (pure data + accessors)
+│       │   ├── resume.py              # Resume-from-breakpoint logic (based on historical results)
+│       │   ├── session_manager.py     # Test session management (shared resources, locks) SessionFileLock + SessionManager
+│       │   ├── test_helpers.py        # pytest test-process helpers (glue layer)
+│       │   └── test_recorder.py       # Test result recorder
+│       └── utils/                   # Common utilities layer
+│           ├── __init__.py            # Unified interface exposed externally
+│           ├── assertions.py          # Generic Assertions Library (Pure Logic)
+│           ├── concurrent.py          # Concurrency-safe utilities (portalocker wrapper)
+│           ├── data_sanitizer.py      # Data cleaning and type safety utilities
+│           ├── files.py               # File operation utilities
+│           └── runner.py              # Callable execution primitives (process-level timeout + retry)
 │
 ├── testcases/                   # LLM business test cases
 │   └── futureCovs/
@@ -74,7 +75,6 @@ project/
 ├── outputs/                     # Generated at runtime: logs, results, HTML reports
 │   ├── results/                   # Business results (CSV/JSON)
 │   ├── reports/                   # pytest reports (HTML+CSV)
-│   ├── analytics/                 # Model analysis results
 │   └── logs/                      # Log files
 │       └── tsfm_benchmark_20260824.log  # Filename dynamically includes execution date
 │

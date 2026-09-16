@@ -6,6 +6,14 @@ Serves as the bridge between the ``testcases`` layer and ``utils`` layer.
 
 Modules:
 -------
+assertions.py - Business Assertion Layer
+  Provides business-level assertions for time series foundation model testing:
+  prediction validity (assert_prediction_valid), metric threshold checks
+  (assert_metrics_within_range), and API graceful failure verification
+  (assert_graceful_failure). Wraps generic assertions from
+  ``neuraxis_testkit.utils.assertions`` and enriches them with business semantics.
+  The default acceptable exception types (GRACEFUL_EXCEPTION_TYPES) are defined here.
+
 client.py - TimechoAI Client Connection
   Provides factory functions get_timecho_client() / get_timecho_async_client(),
   unifying the creation and lifecycle management of TimechoAIClient / TimechoAIAsyncClient instances.
@@ -16,8 +24,12 @@ metrics.py - Evaluation Metrics Calculator
   Pure mathematical calculation functions without side effects.
 
 models.py - Shared Data Models
-  Defines core data structures (TestStatus, TestResult, BatchReport) used across
-  the entire framework. Supports i18n via TEST_LANG environment variable.
+  Defines core data structures (ForecastResult, BatchForecastReport) used across
+  the forecasting pipeline. Built on ``dataclasses``:
+    - ForecastResult: per-timestamp record of prediction/actual/error with
+      detailed metrics (mae, rmse, mape, etc.).
+    - BatchForecastReport: batch-level aggregate report containing model/dataset
+      names, the full result list, and summary metrics with a creation timestamp.
 
 results.py - Test Result Manager
   Manages result persistence (batch buffering), historical loading, and querying.
@@ -57,6 +69,7 @@ Usage Examples:
 """
 
 __all__ = [
+    "assertions",
     "metrics",
     "models",
     "results",
