@@ -31,7 +31,7 @@ def get_logger(name: str = "neuraxis", **kwargs) -> Logger:
         Logger instance.
 
     Example:
-        >>> logger = get_logger('testcases.futureCovs.dirtyData.test_dirty')
+        >>> logger = get_logger('tests.futureCovs.dirtyData.test_dirty')
     """
     return Logger.get_logger(name, **kwargs)
 

@@ -14,7 +14,7 @@ from pathlib import Path
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[1]
 
 # Derived paths (defined centrally here; other modules use read-only references)
-TESTCASES_DIR: Path = PROJECT_ROOT / "testcases"
+TESTS_DIR: Path = PROJECT_ROOT / "tests"
 OUTPUT_DIR:  Path = PROJECT_ROOT / "outputs"
 RESULTS_DIR: Path = OUTPUT_DIR / "results"
 LOGS_DIR:    Path = OUTPUT_DIR / "logs"

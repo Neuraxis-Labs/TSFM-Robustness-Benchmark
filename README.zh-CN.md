@@ -48,7 +48,7 @@ project/
 │          ├── files.py                # 文件操作工具
 │          └── runner.py               # 测试运行核心原语 (AST 静态发现 + 单用例执行 + 内存态结果追踪)
 │
-├── testcases/                  # 时序大模型测试用例
+├── tests/                      # 时序大模型测试用例
 │   └── futureCovs/
 │       └── dirtyData/
 │           ├── test_dirty.py

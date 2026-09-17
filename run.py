@@ -5,10 +5,10 @@ TSFM-Robustness-Benchmark - Unified Entry Point
 
 Usage Examples:
   # Single test case
-  python run.py testcases.futureCovs.dirtyData.test_dirty
+  python run.py tests.futureCovs.dirtyData.test_dirty
 
   # File path is also acceptable
-  python run.py ./testcases/futureCovs/dirtyData/test_dirty.py
+  python run.py ./tests/futureCovs/dirtyData/test_dirty.py
 
   # To run all cases in batch, please use pytest
 
@@ -40,15 +40,15 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 For batch execution, please use pytest:
-  pytest testcases/                  # Run all tests
-  pytest testcases/ -k test_dirty    # Filter by name
-  pytest testcases/ -v               # Verbose output
+  pytest tests/                  # Run all tests
+  pytest tests/ -k test_dirty    # Filter by name
+  pytest tests/ -v               # Verbose output
 """,
     )
 
     parser.add_argument(
         "module",
-        help="Test module path (e.g., testcases.futureCovs.dirtyData.test_dirty)"
+        help="Test module path (e.g., tests.futureCovs.dirtyData.test_dirty)"
     )
     args = parser.parse_args()
 

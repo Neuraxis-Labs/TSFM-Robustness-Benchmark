@@ -14,7 +14,7 @@ Create Date: 2026/06/29, Update on 2026/07/12.
 import time
 import numpy as np
 
-from config.settings import TESTCASES_DIR, RESULTS_DIR
+from config.settings import TESTS_DIR, RESULTS_DIR
 from config.constants import HISTORY_POINT_LEN_256, FORECAST_POINT_LEN_64
 from core.timecho import forecast
 from core.metrics import calc_metrics, calc_diff
@@ -23,7 +23,7 @@ from neuraxis_testkit.utils.files import read_csv_to_dataframe, save_with_json_b
 # ============================================================
 # Data related configuration
 # ============================================================
-CSV_PATH = TESTCASES_DIR / "futureCovs" / "convariant" / "data" / "cov_test_data.csv"    # Test data file
+CSV_PATH = TESTS_DIR / "futureCovs" / "convariant" / "data" / "cov_test_data.csv"    # Test data file
 OUTPUT_SUBDIR = RESULTS_DIR / "futureCovs" / "convariant"
 ensure_dir(OUTPUT_SUBDIR)
 RESULT_PATH = OUTPUT_SUBDIR / "cov_test_results.csv"    # Prediction results file
