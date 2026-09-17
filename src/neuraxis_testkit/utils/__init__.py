@@ -33,6 +33,7 @@ Usage Examples:
 -----------------------------
 >>> # Utils layer usage (for core layer developers)
 >>> from neuraxis_testkit.assertions import assert_almost_equal, assert_no_nan_inf, assert_in_range, assert_length
+>>> from neuraxis_testkit.utils.concurrent import FileLock, ProcessSafeCache
 >>> from neuraxis_testkit.utils.data_sanitizer import clean_nan_values, safe_float
 >>> from neuraxis_testkit.utils.files import save_to_csv, append_to_csv
 >>> from neuraxis_testkit.utils.runner import run_with_timeout, run_test_with_retry

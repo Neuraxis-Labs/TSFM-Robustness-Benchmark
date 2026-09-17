@@ -78,9 +78,9 @@ project/
 │   └── logs/                      # Log files
 │       └── tsfm_benchmark_20260824.log  # Filename dynamically includes execution date
 │
-├── conftest.py                 # Repository-level pytest adaptation entry point
-├── pyproject.toml              # Project configuration management
-├── README.md                   # Project documentation (English), providing project overview, usage, notes, etc.
+├── conftest.py                  # Repository-level pytest adaptation entry point
+├── pyproject.toml               # Project configuration management
+├── README.md                    # Project documentation (English), providing project overview, usage, notes, etc.
 └── .python-version
 ```
 

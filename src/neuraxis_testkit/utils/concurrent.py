@@ -18,12 +18,7 @@ Design Notes:
     file descriptors (fd) and releases locks upon process crashes.
     Therefore, stale lock cleanup is theoretically unnecessary.
 
-    However, as a defensive measure, `_clean_stale_lock()` employs atomic rename + PID checking
-    to handle residual lock files in extreme scenarios (e.g., fd not closed properly due to SIGKILL).
-    This method deletes the `.stale` file regardless of expiration status and does not restore
-    the original path, avoiding overwriting new lock files potentially created by other processes.
-
-Create Date: 2026/08/25.
+Create Date: 2026/08/25, Updated on 2026/09/17.
 """
 
 import os, time, json, atexit, tempfile, portalocker
@@ -46,24 +41,21 @@ class FileLock:
     - Windows: Underlying `LockFileEx` (Win32 API), kernel-managed, auto-release on crash.
     - Both platforms support true shared locks (LOCK_SH) and exclusive locks (LOCK_EX).
 
-    Stale Cleanup:
-        Kernel-level locks from `portalocker` are usually released automatically on process crashes.
-        `_clean_stale_lock()` serves as a defensive measure using atomic rename to prevent TOCTOU issues:
-        1. Atomically rename the lock file to .stale (atomic operation on the same filesystem).
-        2. Exclusively check on .stale: is the PID alive + is stale_timeout exceeded.
-        3. Regardless of expiration, delete .stale and do not restore the original path.
-        This completely avoids the race condition of "overwriting a new lock file created by another process during recovery."
+    Stale lock handling:
+        `portalocker` uses OS-level advisory locks. When a process exits or crashes,
+        the OS automatically reclaims the file descriptor and releases the lock.
+        Therefore no stale-lock cleanup is needed, and `acquire()` never renames
+        or removes an existing lock file — doing so would let two processes hold
+        the same lock simultaneously.
 
-        `_clean_stale_lock()` is called before `acquire()` (outside the lock).
-        Placing it inside the lock would create a deadlock: "need lock to clean, need clean to acquire lock."
-        Atomic rename ensures only one process succeeds in renaming; others return safely without race conditions.
+        Residual `.lock` files on disk are harmless: `open(..., "a+b")` reuses the
+        same path, and `cleanup_locks()` removes leftovers at session end.
 
     Thread Safety: This class is NOT thread-safe; each thread should create an independent FileLock instance.
     Process Safety: This class is process-safe (guaranteed by portalocker file locks).
     """
 
-    def __init__(self, lock_name: str, lock_dir: Path | None = None,
-                 timeout: float = 30.0, stale_timeout: float = 300.0):
+    def __init__(self, lock_name: str, lock_dir: Path | None = None, timeout: float = 30.0):
         """
         Initialize the file lock instance.
 
@@ -71,16 +63,12 @@ class FileLock:
             lock_name: Lock name (used to generate a unique lock filename).
             lock_dir: Directory for lock files. Defaults to the system temp directory.
             timeout: Timeout (in seconds) for acquiring the lock. Raises LockException on timeout.
-            stale_timeout: Lock expiration time (in seconds) for the stale cleanup fallback mechanism.
-                          Should be set sufficiently long (e.g., 300s) to prevent accidental deletion of valid locks.
-                          Default is 300s.
         """
         self.lock_name = lock_name   # Name of the lock
         self.lock_dir = Path(lock_dir or tempfile.gettempdir())  # Lock file storage directory
         self.lock_dir.mkdir(parents=True, exist_ok=True)  # Ensure lock directory exists
-        self._lock_file = self.lock_dir / f"tsfm_lock_{lock_name}.lock"  # Lock file path
+        self._lock_file = self.lock_dir / f"neuraxis_lock_{lock_name}.lock"  # Lock file path
         self._timeout = timeout      # Lock acquisition timeout
-        self._stale_timeout = stale_timeout  # Lock expiration time
         self._fh: Any = None         # File handle (managed by portalocker)
         self._acquired = False       # Whether the lock is currently held
         self._is_shared = False      # Whether it is a shared lock
@@ -136,7 +124,7 @@ class FileLock:
         File Mode:
         - Uses "a+b" mode (append + binary); open() creates the file automatically.
         - Shared Lock: Does not modify file content (holds lock only).
-        - Exclusive Lock: Writes pid:timestamp metadata (for stale detection).
+        - Exclusive Lock: Writes pid:timestamp metadata (diagnostic only; not used for cleanup).
 
         Args:
             shared: True=Shared Lock (Read Lock), False=Exclusive Lock (Write Lock).
@@ -148,8 +136,6 @@ class FileLock:
         """
         if self._acquired:
             raise RuntimeError("Lock already acquired by this instance")
-
-        self._clean_stale_lock()
 
         # Acquire lock using portalocker
         lock_type = portalocker.LOCK_SH if shared else portalocker.LOCK_EX
@@ -256,29 +242,6 @@ class FileLock:
 
 
     # ---------- Helper Methods ----------
-    def _clean_stale_lock(self) -> None:
-        """
-        Atomically clean expired lock files (rename only, no deletion).
-
-        Design Decision: 设计决策
-        - Only rename .lock to .stale; do not delete .stale files.
-        - .stale files will be overwritten by the next call to replace().
-        - Avoids issues with unlink() blocking on Windows.
-        - FileLock.cleanup_locks() can be used for batch cleanup at the end of tests.
-        """
-        if not self._lock_file.exists():
-            return
-
-        temp_stale = self._lock_file.with_suffix('.stale')
-        try:
-            # Path.replace = os.rename, which is atomic on the same filesystem
-            # If .stale exists, replace() will overwrite it
-            self._lock_file.replace(temp_stale)
-            logger.trace(f"Renamed {self._lock_file.name} to {temp_stale.name}")
-        except OSError:
-            # File processed or deleted by another process
-            pass
-
     @staticmethod
     def _is_process_alive(pid: int) -> bool:
         """
@@ -286,8 +249,7 @@ class FileLock:
 
         Uses os.kill(pid, 0) to send signal 0; does not actually send a signal.
         Only checks if the PID exists, not if it is the same process (PID may be reused).
-
-        Known Risk: PID reuse may cause false positives; mitigated by stale_timeout at the upper layer.
+        Provided as a utility; the lock itself does not depend on it.
         """
         if pid <= 0:
             return False
@@ -300,11 +262,14 @@ class FileLock:
     @classmethod
     def cleanup_locks(cls, lock_dir: Path | None = None):
         """
-        Clean up all lock files and remaining .stale files.
+        Remove residual lock files at session end.
+
+        Note: removing a lock file does NOT release an in-flight kernel lock;
+        the OS does that automatically when the holder exits or crashes.
         Recommended to call at the end of the test suite.
         """
         lock_dir = Path(lock_dir or tempfile.gettempdir())
-        for pattern in ("tsfm_lock_*.lock", "tsfm_lock_*.stale"):
+        for pattern in ("neuraxis_lock_*.lock", "neuraxis_lock_*.stale"):
             for f in lock_dir.glob(pattern):
                 try:
                     f.unlink()
@@ -332,7 +297,7 @@ class _LockContext:
 
 class ProcessSafeCache:
     """
-    Process-safe cache — supports multi-process concurrent reads, exclusive writes.
+    Process-safe cache - supports multi-process concurrent reads, exclusive writes.
 
     Uses `portalocker` for cross-platform read-write locks:
     - Read operations: Shared Lock (LOCK_SH), concurrent reads by multiple processes.
@@ -349,7 +314,7 @@ class ProcessSafeCache:
         self.cache_name = cache_name
         self.cache_dir = Path(cache_dir or tempfile.gettempdir())
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self._cache_file = self.cache_dir / f"tsfm_cache_{cache_name}.json"
+        self._cache_file = self.cache_dir / f"neuraxis_cache_{cache_name}.json"
         # Use file lock to protect cross-process access
         self._file_lock = FileLock(
             f"cache_{cache_name}", lock_dir=self.cache_dir, timeout=10.0)
@@ -426,7 +391,7 @@ class ProcessSafeCache:
     def cleanup_all(cls, cache_dir: Path | None = None):
         """Clean up all cache files (including temp files)."""
         cache_dir = Path(cache_dir or tempfile.gettempdir())
-        for pattern in ("tsfm_cache_*.json", "tsfm_cache_*.json.tmp"):
+        for pattern in ("neuraxis_cache_*.json", "neuraxis_cache_*.json.tmp"):
             for f in cache_dir.glob(pattern):
                 try:
                     f.unlink()
@@ -440,7 +405,7 @@ class ProcessSafeCache:
 
 class ProcessSafeCounter:
     """
-    Process-safe counter — reads can be shared, writes are exclusive.
+    Process-safe counter - reads can be shared, writes are exclusive.
 
     Uses `portalocker` for cross-platform read-write locks:
     - Read operations: Shared Lock (LOCK_SH), concurrent reads by multiple processes.
@@ -453,7 +418,7 @@ class ProcessSafeCounter:
         self.counter_dir = Path(counter_dir or tempfile.gettempdir())
         self.counter_dir.mkdir(parents=True, exist_ok=True)
         self._counter_file = (
-            self.counter_dir / f"tsfm_counter_{counter_name}.txt"
+            self.counter_dir / f"neuraxis_counter_{counter_name}.txt"
         )
         self._file_lock = FileLock(
             f"counter_{counter_name}",
@@ -516,7 +481,7 @@ class ProcessSafeCounter:
     def cleanup_all(cls, counter_dir: Path | None = None):
         """Clean up all counter files (including temp files)."""
         counter_dir = Path(counter_dir or tempfile.gettempdir())
-        for pattern in ("tsfm_counter_*.txt", "tsfm_counter_*.txt.tmp"):
+        for pattern in ("neuraxis_counter_*.txt", "neuraxis_counter_*.txt.tmp"):
             for f in counter_dir.glob(pattern):
                 try:
                     f.unlink()
@@ -543,7 +508,7 @@ def get_worker_id() -> str:
 
 def merge_results_from_workers(
     result_dir: Path,
-    pattern: str = "tsfm_results_worker_*.json",
+    pattern: str = "neuraxis_results_worker_*.json",
     timeout: float = 5.0,  # Timeout for waiting for file completion
 ) -> list[dict]:
     """
@@ -552,10 +517,10 @@ def merge_results_from_workers(
     Safety Guarantees:
     1. Only reads final files (non-.tmp), skipping temporary files being written.
     2. Workers should use the "write temp file + atomic rename" pattern:
-       tmp = result_dir / f"tsfm_results_worker_{wid}.json.tmp"
+       tmp = result_dir / f"neuraxis_results_worker_{wid}.json.tmp"
        with open(tmp, 'w') as f:
            json.dump(results, f)
-       tmp.replace(result_dir / f"tsfm_results_worker_{wid}.json")
+       tmp.replace(result_dir / f"neuraxis_results_worker_{wid}.json")
     3. Reads with timeout retry to wait for file write completion.
     4. Retry on JSONDecodeError (file may be writing); skip on OSError (file issue).
     5. Failed reads are logged via logger.error() and skipped.

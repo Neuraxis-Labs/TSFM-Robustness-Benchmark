@@ -79,7 +79,7 @@ def resolve_resume_file(cli_value: str | None, cache) -> Path | None:
         p = Path(cli_value)
         return p if p.exists() else None
     if cache is not None:
-        last = cache.get("tsfm/last_csv_path", None)
+        last = cache.get("neuraxis/last_csv_path", None)
         if last:
             p = Path(last)
             return p if p.exists() else None
@@ -89,4 +89,4 @@ def resolve_resume_file(cli_value: str | None, cache) -> Path | None:
 def remember_csv_path(cache, csv_path: Path) -> None:
     """Record the CSV path to cache after this run, for use by the next --resume."""
     if cache is not None:
-        cache.set("tsfm/last_csv_path", str(csv_path))
+        cache.set("neuraxis/last_csv_path", str(csv_path))

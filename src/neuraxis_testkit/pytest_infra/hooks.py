@@ -53,8 +53,7 @@ def _get_csv_lock(csv_path: Path) -> FileLock:
         if key not in _csv_locks:
             _csv_locks[key] = FileLock(
                 lock_name=f"csv_{csv_path.stem}",   # lock file in system temp dir, competition issue disappears with business CSV same directory deletion
-                timeout=30.0,
-                stale_timeout=300.0,
+                timeout=30.0
             )
         return _csv_locks[key]
 
