@@ -160,7 +160,8 @@ def append_to_csv(
         data=data,
         mode="a",
         encoding=encoding,
-        columns=columns
+        columns=columns,
+        strict_suffix=strict_suffix
     )
 
 def save_with_json_backup(
