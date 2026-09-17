@@ -10,7 +10,7 @@ Create Date: 2026/07/10.
 """
 
 # ============================================================
-import aiohttp
+import aiohttp, requests
 
 _original_aiohttp_request = aiohttp.ClientSession._request
 
@@ -116,6 +116,14 @@ def forecast(
         elapsed_ms = (time.perf_counter() - t0) * 1000
         pred_values = extract_pred_values(result[0])
         return pred_values, elapsed_ms, None
+    except requests.exceptions.HTTPError as httpExp:
+        # 429 triggers HTTPError
+        resp = httpExp.response
+        print(f"Status Code: {resp.status_code}")
+        print(f"Retry-After: {resp.headers.get('Retry-After', 'Not returned')}")
+        print(f"All Response Headers: {dict(resp.headers)}")
+        print(f"Response Body: {resp.text[:500]}")
+        raise
     except Exception as exp:
         if hasattr(exp, 'response'):
             resp = exp.response
