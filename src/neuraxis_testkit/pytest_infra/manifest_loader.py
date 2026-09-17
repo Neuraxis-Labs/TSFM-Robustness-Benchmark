@@ -9,7 +9,7 @@ YAML format convention:
       future_covs: 24
     cases:
       - id: dirty_s0                  # Required, used for pytest.ids
-        data: data/test_dirty_s0.csv  # Required, data file relative to testcases directory
+        data: data/test_dirty_s0.csv  # Required, data file relative to tests directory
         future_covs: 24               # Other fields are passed through to the test fixture/parameters
         tags: [dirty]                 # Optional, used to generate markers
 

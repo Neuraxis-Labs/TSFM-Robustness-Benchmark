@@ -17,7 +17,7 @@ Core Features:
 
 Module Position in Architecture:
   - Calls: neuraxis_testkit.utils.concurrent (Concurrent Safety), neuraxis_testkit.utils.files (file operations), neuraxis_testkit.logger (logging)
-  - Called by: testcases.* (business logic), resume.py (breakpoint logic)
+  - Called by: tests.* (business logic), resume.py (breakpoint logic)
 
 Author: Janesong
 Create Date: 2026/07/19, Updated on 2026/08/25.

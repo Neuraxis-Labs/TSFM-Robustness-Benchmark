@@ -39,11 +39,11 @@ project/
 │       ├── log/                     # Logging management
 │       │   ├── __init__.py            # Unified interface exposed externally
 │       │   ├── config.py              # Variable configuration
-│       │   ├── context.py             # Context manager (LogLevelContext)
-│       │   ├── core.py                # Core Logger class
-│       │   ├── decorators.py          # Decorators (log_execution, log_time)
-│       │   ├── filters.py             # Filters (ModuleLevelFilter, IgnoredLoggerFilter)
-│       │   ├── formatters.py          # Formatters (ColoredFormatter)
+│       │   ├── context.py             # Context managers (`LogLevelContext`)
+│       │   ├── core.py                # Core `Logger` class
+│       │   ├── decorators.py          # Decorators (`log_execution`, `log_time`)
+│       │   ├── filters.py             # Filters (`ModuleLevelFilter`, `IgnoredLoggerFilter`)
+│       │   ├── formatters.py          # Formatters (`ColoredFormatter`)
 │       │   └── logging.yaml           # Logging configuration
 │       ├── pytest_infra/            # Pytest infrastructure layer
 │       │   ├── __init__.py            # Unified interface exposed externally
@@ -65,11 +65,11 @@ project/
 │           ├── files.py               # File operation utilities
 │           └── runner.py              # Callable execution primitives (process-level timeout + retry)
 │
-├── testcases/                   # LLM business test cases
+├── tests/                      # Time-Series Large Model TestCases
 │   └── futureCovs/
 │       └── dirtyData/
 │           ├── test_dirty.py
-│           └── data/              # Test data files (inputs required by test cases)
+│           └── data/             # Test data files (inputs required by test cases)
 │               └── test_dirty_s0.csv
 │
 ├── outputs/                     # Generated at runtime: logs, results, HTML reports
@@ -78,9 +78,9 @@ project/
 │   └── logs/                      # Log files
 │       └── tsfm_benchmark_20260824.log  # Filename dynamically includes execution date
 │
-├── conftest.py                  # Repository-level pytest adaptation entry point
-├── pyproject.toml               # Project configuration management
-├── README.md                    # Project documentation (English), providing project overview, usage, notes, etc.
+├── conftest.py                 # Repository-level pytest adaptation entry point
+├── pyproject.toml              # Project configuration management
+├── README.md                   # Project documentation (English), providing project overview, usage, notes, etc.
 └── .python-version
 ```
 
@@ -91,9 +91,9 @@ Key file descriptions:
 It is **not** a test entry point; test discovery, execution, and reporting are owned by pytest and `pytest_infra/test_recorder.py`.
 - `pyproject.toml`: Project configuration, dependency declarations, pytest configuration, and `pytest11` plugin entry points.
 - `src/neuraxis_testkit/`: SDK source directory, which will be split into an independent project later.
-- `testcases/`: Business test cases in the current repository, which will be split into an independent business test repository later.
+- `tests/`: Business test cases in the current repository, which will be split into an independent business test repository later.
 
-## 3. Test Workflow
+## 3. Testing Workflow
 
 1. **Configuration Initialization**: `config/settings.py` loads environment variable files (e.g., `.env`) from the `env/` directory via `load_dotenv()`, and exports global paths and runtime configurations.
 2. **Model Initialization**: Initialize the TimechoAI model using the provided API key.
@@ -212,7 +212,7 @@ python -m pytest -k <module_name>
 **Run by file path:**
 
 ```bash
-python -m pytest testcases/path/to/test_file.py
+python -m pytest tests/path/to/test_file.py
 ```
 
 **Run by marker:**
@@ -248,7 +248,7 @@ outputs/reports/report.html
 
 The `[tool.pytest.ini_options]` section in `pyproject.toml` is configured as follows:
 
-- `testpaths = ["testcases"]`
+- `testpaths = ["tests"]`
 - Test file pattern: `test_*.py`
 - Test class pattern: `Test*`
 - Test function pattern: `test_*`

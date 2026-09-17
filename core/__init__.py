@@ -2,7 +2,7 @@
 core - Business Core Layer
 
 Provides centralized management for business logic, state, and external interactions.
-Serves as the bridge between the ``testcases`` layer and ``utils`` layer.
+Serves as the bridge between the ``tests`` layer and ``utils`` layer.
 
 Modules:
 -------
@@ -43,7 +43,7 @@ timecho.py - TimechoAI Interaction Layer
 
 Usage Examples:
 --------------
-1. Business modules (e.g., testcases/) should access TimechoAI services indirectly through core.timecho.
+1. Business modules (e.g., tests/) should access TimechoAI services indirectly through core.timecho.
 2. The core layer is the only module that directly uses utils.client.
 
 >>> # Evaluation metrics calculator

@@ -39,11 +39,11 @@ project/
 │       ├── log/                     # 日志管理
 │       │   ├── __init__.py            # 对外暴露的统一接口
 │       │   ├── config.py              # 变量配置
-│       │   ├── context.py             # 上下文管理器 (LogLevelContext)
-│       │   ├── core.py                # 核心 Logger 类
-│       │   ├── decorators.py          # 装饰器 (log_execution, log_time)
-│       │   ├── filters.py             # 过滤器 (ModuleLevelFilter, IgnoredLoggerFilter)
-│       │   ├── formatters.py          # 格式化器 (ColoredFormatter)
+│       │   ├── context.py             # 上下文管理器 (`LogLevelContext`)
+│       │   ├── core.py                # 核心 `Logger` 类
+│       │   ├── decorators.py          # 装饰器 (`log_execution`, `log_time`)
+│       │   ├── filters.py             # 过滤器 (`ModuleLevelFilter`, `IgnoredLoggerFilter`)
+│       │   ├── formatters.py          # 格式化器 (`ColoredFormatter`)
 │       │   └── logging.yaml           # 日志配置
 │       ├── pytest_infra/            # Pytest 基础设施层
 │       │   ├── __init__.py            # 对外暴露的统一接口
@@ -65,7 +65,7 @@ project/
 │          ├── files.py                # 文件操作工具
 │          └── runner.py               # 可调用对象执行原语(进程级超时 + 重试)
 │
-├── testcases/                  # 大模型业务测试用例
+├── tests/                      # 时序大模型业务测试用例
 │   └── futureCovs/
 │       └── dirtyData/
 │           ├── test_dirty.py
@@ -90,7 +90,7 @@ project/
 - `utils/runner.py` 仅提供"在用例内部调用可调用对象"时的进程级超时 / 重试原语,**不是测试入口**.用例发现、执行、报告由 pytest 与 `pytest_infra/test_recorder.py` 接管.
 - `pyproject.toml`: 项目配置、依赖声明、pytest 配置、`pytest11` 插件入口.
 - `src/neuraxis_testkit/`: SDK 源码目录,后续会拆分为独立项目.
-- `testcases/`: 当前仓库中的业务测试用例,后续会拆分为独立业务测试仓库.
+- `tests/`: 当前仓库中的业务测试用例,后续会拆分为独立业务测试仓库.
 
 ## 3. 测试流程
 
@@ -211,7 +211,7 @@ python -m pytest -k <module_name>
 **按文件路径运行: **
 
 ```bash
-python -m pytest testcases/path/to/test_file.py
+python -m pytest tests/path/to/test_file.py
 ```
 
 **按标记运行: **
@@ -247,7 +247,7 @@ outputs/reports/report.html
 
 `pyproject.toml` 中的 `[tool.pytest.ini_options]` 已配置:
 
-- `testpaths = ["testcases"]`
+- `testpaths = ["tests"]`
 - 测试文件匹配: `test_*.py`
 - 测试类匹配: `Test*`
 - 测试函数匹配: `test_*`

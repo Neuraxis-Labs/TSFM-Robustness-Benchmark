@@ -27,7 +27,7 @@ for env_file in env_files:
     if env_file.exists():
         load_dotenv(dotenv_path=env_file, override=True)
 
-TESTCASES_DIR: Path = PROJECT_ROOT / "testcases"
+TESTS_DIR: Path = PROJECT_ROOT / "tests"
 OUTPUT_DIR:  Path = PROJECT_ROOT / "outputs"
 RESULTS_DIR: Path = OUTPUT_DIR / "results"
 LOGS_DIR:    Path = OUTPUT_DIR / "logs"

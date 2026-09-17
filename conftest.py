@@ -1,28 +1,28 @@
 
 """
 Usage Examples:
-  pytest testcases/
+  pytest tests/
 
-  pytest testcases/ -k dirty
-  pytest testcases/ -k dirty -v
+  pytest tests/ -k dirty
+  pytest tests/ -k dirty -v
 
-  pytest testcases/ -m dirty
-  pytest testcases/ -m "concept_drift and not slow"
+  pytest tests/ -m dirty
+  pytest tests/ -m "concept_drift and not slow"
 
-  pytest testcases.futureCovs.dirtyData.test_dirty
+  pytest tests.futureCovs.dirtyData.test_dirty
 
-  pytest testcases.futureCovs.dirtyData.test_dirty::test_dirty_basic
+  pytest tests.futureCovs.dirtyData.test_dirty::test_dirty_basic
 
-  pytest testcases/ -n auto
+  pytest tests/ -n auto
 
-  pytest testcases/ --reruns 3 --reruns-delay 5
+  pytest tests/ --reruns 3 --reruns-delay 5
 
-  pytest testcases/ --junitxml=outputs/reports/report.xml
+  pytest tests/ --junitxml=outputs/reports/report.xml
 
-  pytest testcases/ --lf
-  pytest testcases/xxx --resume --resume-file "outputs/reports/report-<run-ts>.csv"
+  pytest tests/ --lf
+  pytest tests/xxx --resume --resume-file "outputs/reports/report-<run-ts>.csv"
 
-  pytest testcases/ -s --pdb
+  pytest tests/ -s --pdb
 
   python -m pytest --collect-only -q --output-dir=/tmp/x
 """

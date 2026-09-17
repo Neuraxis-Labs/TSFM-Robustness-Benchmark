@@ -4,12 +4,12 @@
 neuraxis_testkit.pytest_infra.collection - Dynamic test case collection driven by YAML manifests
 
 Two working modes:
-  A. Static test cases + manifest parameterization (recommended, write test_*.py under testcases/ normally)
+  A. Static test cases + manifest parameterization (recommended, write test_*.py under tests/ normally)
      -> This file is not needed; tests directly use manifest_loader.load_manifest()
   B. Fully manifest-driven (a single entry file auto-generates all test cases)
      -> Called by pytest_collection_modifyitems / pytest_generate_tests
 
-Usage (in testcases/conftest.py or test file):
+Usage (in tests/conftest.py or test file):
     def pytest_generate_tests(metafunc):
         from neuraxis_testkit.pytest_infra.collection import parametrize_from_manifest
         parametrize_from_manifest(metafunc, "case", "dirty_data")

@@ -27,7 +27,7 @@ runner.py - Execution Primitives
 
 Usage Conventions:
 --------------------------
-  Files and data_sanitizer can be used directly by core layers, but testcases should prefer core interfaces.
+  Files and data_sanitizer can be used directly by core layers, but tests should prefer core interfaces.
 
 Usage Examples:
 -----------------------------
