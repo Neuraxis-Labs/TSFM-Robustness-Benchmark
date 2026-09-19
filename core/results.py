@@ -26,7 +26,7 @@ Create Date: 2026/07/19, Updated on 2026/08/25.
 import json, tempfile
 from pathlib import Path
 from typing import Any
-from core.resume import is_rate_limited
+from core.resume import classify_record
 from neuraxis_testkit.utils.concurrent import FileLock, ProcessSafeCache
 from neuraxis_testkit.utils.files import append_to_csv, csv_exists_and_not_empty, read_csv_to_list
 from neuraxis_testkit.log import get_logger
@@ -323,31 +323,29 @@ def load_results_from_csv(result_csv_path_file: str) -> tuple[list[dict[str, Any
 
         # Classify error types
         non_rate_limit_error = 0
+        unknown_count = 0
+        success_count = 0
         retry_count = 0
+
         for record in all_records:
-            success_val = record.get("success", "")
-            if str(success_val).strip().lower() == "true":
-                continue
-
-            # Classify failure reason
-            if is_rate_limited(str(record.get("error", ""))):
+            status = classify_record(record)
+            if status == "success":
+                success_count += 1
+            elif status == "rate_limited":
                 retry_count += 1
-            else:
+            elif status == "failed":
                 non_rate_limit_error += 1
+            else:  # "unknown"
+                unknown_count += 1
 
-        msg = (
-            f"Loaded {Path(result_csv_path_file).name}: "
-            f"{len(all_records)} records"
-        )
-        success_count = (
-            len(all_records) - non_rate_limit_error - retry_count
-        )
+        msg = f"Loaded {Path(result_csv_path_file).name}: {len(all_records)} records"
         msg += f" (Success: {success_count}"
-
         if non_rate_limit_error > 0:
             msg += f", Failed: {non_rate_limit_error}"
         if retry_count > 0:
             msg += f", Pending Retry: {retry_count}"
+        if unknown_count > 0:
+            msg += f", Unknown: {unknown_count}"
         msg += ")"
         logger.info(msg)
         return all_records, non_rate_limit_error

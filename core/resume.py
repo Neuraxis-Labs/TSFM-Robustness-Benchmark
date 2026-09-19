@@ -28,7 +28,10 @@ Author: Janesong
 Create Date: 2026/07/10, Updated on 2026/08/17.
 """
 
-from typing import Any
+from typing import Any, Literal
+from neuraxis_testkit.log import get_logger
+
+logger = get_logger(__name__)
 
 # Rate limit keywords for detection
 RATE_LIMIT_KEYWORDS = ["429", "limit", "quota", "exceed", "rate", "too many"]
@@ -58,6 +61,31 @@ def is_rate_limited(error_msg: str) -> bool:
     error_lower = error_msg.lower()
     return any(k in error_lower for k in RATE_LIMIT_KEYWORDS)
 
+RecordStatus = Literal["success", "rate_limited", "failed", "unknown"]
+def classify_record(record: dict) -> RecordStatus:
+    """
+    Classify a result record into one of four categories.
+
+    Categories:
+        - "success":      ``success`` field is "true"
+        - "rate_limited": ``success`` is "false" and the error is rate-limit related
+        - "failed":       ``success`` is "false" and the error is NOT rate-limit related
+        - "unknown":      ``success`` field is missing or not a valid boolean string
+                          (treated as incomplete; caller should allow rerun)
+
+    Args:
+        record: A single result dictionary loaded from CSV.
+
+    Returns:
+        One of "success", "rate_limited", "failed", "unknown".
+    """
+    success_val = str(record.get("success", "")).strip().lower()
+    if success_val == "true":
+        return "success"
+    if success_val == "false":
+        error_msg = str(record.get("error", ""))
+        return "rate_limited" if is_rate_limited(error_msg) else "failed"
+    return "unknown"
 
 def should_skip_test(
     completed_keys: set[tuple[Any, ...]],
@@ -89,7 +117,6 @@ def should_skip_test(
         return True
 
     return False
-
 
 def build_completed_keys(
     records: list[dict],
@@ -126,19 +153,16 @@ def build_completed_keys(
     for record in records:
         # Build key from specified columns
         key = tuple(record.get(col) for col in key_columns)
+        status = classify_record(record)
 
-        success_val = str(record.get("success", "")).strip().lower()
-
-        if success_val == "true":
-            # Successfully completed
-            completed_keys.add(key)
-        else:
-            # Check if it's a rate limit error
-            error_msg = str(record.get("error", ""))
-            if not is_rate_limited(error_msg):
-                # Permanent failure, should skip
-                failed_keys.add(key)
-            # Rate limit errors should be retried, not added to failed_keys
+        if status == "success":
+            completed_keys.add(key)   # Successfully completed
+        elif status == "failed":
+            failed_keys.add(key)
+        elif status == "rate_limited":
+            pass  # Retry later; not added to failed_keys
+        else:  # "unknown"
+            logger.warning(f"Record missing valid 'success' field, key={key}, will rerun")
 
     return completed_keys, failed_keys
 
