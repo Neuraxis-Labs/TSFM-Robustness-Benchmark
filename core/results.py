@@ -52,16 +52,16 @@ class _ConcurrentResultBufferManager:
         {
             "results": [dict, dict, ...],   # List of results
             "target_file": "/path/to.csv",  # Target CSV file path
-            "batch_size": 20                # Batch size
+            "batch_size": 10                # Batch size
         }
     """
 
-    def __init__(self, default_batch_size: int = 20):
+    def __init__(self, default_batch_size: int = 10):
         """
         Initialize buffer manager.
 
         Args:
-            default_batch_size: Default batch size for auto-flush (default 20)
+            default_batch_size: Default batch size for auto-flush (default 10)
         """
         self._default_batch_size = default_batch_size
         self._temp_dir = Path(tempfile.gettempdir()) / "neuraxis_buffers"
@@ -282,11 +282,8 @@ class _ConcurrentResultBufferManager:
             return len(buffer_data.get("results", []))
 
 
-# ============================================================
 # Global Buffer Manager
-# ============================================================
-
-_buffer_manager = _ConcurrentResultBufferManager(default_batch_size=20)
+_buffer_manager = _ConcurrentResultBufferManager(default_batch_size=10)
 
 
 # ============================================================
@@ -385,7 +382,7 @@ def append_result_to_csv(
     Args:
         result_csv_path_file: Result CSV file path
         result: Single result dictionary
-        batch_size: Batch size for auto-flush (default 20)
+        batch_size: Batch size for auto-flush (default 10)
         force_flush: Force flush immediately (default False)
         validate: Validate result format (default True)
     """
