@@ -62,7 +62,7 @@ def is_rate_limited(error_msg: str) -> bool:
 def should_skip_test(
     completed_keys: set[tuple[Any, ...]],
     test_key: tuple[Any, ...],
-    failed_keys: set[tuple[Any, ...]] = None
+    failed_keys: set[tuple[Any, ...]] | None = None
 ) -> bool:
     """
     Determine if a test should be skipped (already completed or permanently failed).
