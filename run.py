@@ -19,13 +19,15 @@ Environment Variable Options:
   LOG_MAX_BYTES=52428800       Set log file size limit (default 50MB)
 """
 
-import os, sys, logging, argparse
+import sys, logging, argparse
 import traceback
 from pathlib import Path
 
-# Bootstrap: Allow Python to find packages under the project root directory
+# Bootstrap: Allow Python to find packages under the project root directory and src/
 _BOOTSTRAP_ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(_BOOTSTRAP_ROOT))
+for _p in (str(_BOOTSTRAP_ROOT), str(_BOOTSTRAP_ROOT / "src")):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 from config.settings import PROJECT_ROOT
 from neuraxis_testkit.log import get_logger, flush_all_logs
