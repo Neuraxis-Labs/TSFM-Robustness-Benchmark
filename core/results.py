@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any
 from core.resume import is_rate_limited
 from neuraxis_testkit.utils.concurrent import FileLock, ProcessSafeCache
+from neuraxis_testkit.utils.data_sanitizer import clean_nan_values
 from neuraxis_testkit.utils.files import append_to_csv, csv_exists_and_not_empty, read_csv_to_list
 from neuraxis_testkit.log import get_logger
 
@@ -393,7 +394,7 @@ def append_result_to_csv(
     #    _validate_result_format(result)
 
     # Business logic 2: Field normalization
-    result = _normalize_result(result)
+    result = clean_nan_values(result)
 
     # Business logic 3: Atomic append + maybe flush (merged operation to avoid race condition)
     flushed = _buffer_manager.append_and_maybe_flush(
@@ -529,9 +530,4 @@ def _validate_result_format(result: dict) -> None:
     for field in required_fields:
         if field not in result:
             raise ValueError(f"Result missing required field: {field}")
-
-def _normalize_result(result: dict) -> dict:
-    """Normalize result format (business logic)."""
-    from neuraxis_testkit.utils.data_sanitizer import clean_nan_values
-    return clean_nan_values(result)
 
