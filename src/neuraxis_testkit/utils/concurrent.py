@@ -78,7 +78,7 @@ class FileLock:
         self.lock_name = lock_name   # Name of the lock
         self.lock_dir = Path(lock_dir or tempfile.gettempdir())  # Lock file storage directory
         self.lock_dir.mkdir(parents=True, exist_ok=True)  # Ensure lock directory exists
-        self._lock_file = self.lock_dir / f"tsfm_lock_{lock_name}.lock"  # Lock file path
+        self._lock_file = self.lock_dir / f"neuraxis_lock_{lock_name}.lock"  # Lock file path
         self._timeout = timeout      # Lock acquisition timeout
         self._stale_timeout = stale_timeout  # Lock expiration time
         self._fh: Any = None         # File handle (managed by portalocker)
@@ -304,7 +304,7 @@ class FileLock:
         Recommended to call at the end of the test suite.
         """
         lock_dir = Path(lock_dir or tempfile.gettempdir())
-        for pattern in ("tsfm_lock_*.lock", "tsfm_lock_*.stale"):
+        for pattern in ("neuraxis_lock_*.lock", "neuraxis_lock_*.stale"):
             for f in lock_dir.glob(pattern):
                 try:
                     f.unlink()
@@ -349,10 +349,14 @@ class ProcessSafeCache:
         self.cache_name = cache_name
         self.cache_dir = Path(cache_dir or tempfile.gettempdir())
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self._cache_file = self.cache_dir / f"tsfm_cache_{cache_name}.json"
+        self._cache_file = self.cache_dir / f"neuraxis_cache_{cache_name}.json"
         # Use file lock to protect cross-process access
-        self._file_lock = FileLock(
-            f"cache_{cache_name}", lock_dir=self.cache_dir, timeout=10.0)
+        self._file_lock = FileLock(f"cache_{cache_name}", lock_dir=self.cache_dir, timeout=10.0)
+
+    @property
+    def cache_file(self) -> Path:
+        """Cache file path (read-only). For cross-layer use; caller must respect atomic-rename safety."""
+        return self._cache_file
 
     def get(self, key: str, default: Any = None) -> Any:
         """
@@ -426,7 +430,7 @@ class ProcessSafeCache:
     def cleanup_all(cls, cache_dir: Path | None = None):
         """Clean up all cache files (including temp files)."""
         cache_dir = Path(cache_dir or tempfile.gettempdir())
-        for pattern in ("tsfm_cache_*.json", "tsfm_cache_*.json.tmp"):
+        for pattern in ("neuraxis_cache_*.json", "neuraxis_cache_*.tmp"):
             for f in cache_dir.glob(pattern):
                 try:
                     f.unlink()
@@ -453,7 +457,7 @@ class ProcessSafeCounter:
         self.counter_dir = Path(counter_dir or tempfile.gettempdir())
         self.counter_dir.mkdir(parents=True, exist_ok=True)
         self._counter_file = (
-            self.counter_dir / f"tsfm_counter_{counter_name}.txt"
+            self.counter_dir / f"neuraxis_counter_{counter_name}.txt"
         )
         self._file_lock = FileLock(
             f"counter_{counter_name}",
@@ -516,7 +520,7 @@ class ProcessSafeCounter:
     def cleanup_all(cls, counter_dir: Path | None = None):
         """Clean up all counter files (including temp files)."""
         counter_dir = Path(counter_dir or tempfile.gettempdir())
-        for pattern in ("tsfm_counter_*.txt", "tsfm_counter_*.txt.tmp"):
+        for pattern in ("neuraxis_counter_*.txt", "neuraxis_counter_*.tmp"):
             for f in counter_dir.glob(pattern):
                 try:
                     f.unlink()
@@ -543,7 +547,7 @@ def get_worker_id() -> str:
 
 def merge_results_from_workers(
     result_dir: Path,
-    pattern: str = "tsfm_results_worker_*.json",
+    pattern: str = "neuraxis_results_worker_*.json",
     timeout: float = 5.0,  # Timeout for waiting for file completion
 ) -> list[dict]:
     """
@@ -552,10 +556,10 @@ def merge_results_from_workers(
     Safety Guarantees:
     1. Only reads final files (non-.tmp), skipping temporary files being written.
     2. Workers should use the "write temp file + atomic rename" pattern:
-       tmp = result_dir / f"tsfm_results_worker_{wid}.json.tmp"
+       tmp = result_dir / f"neuraxis_results_worker_{wid}.json.tmp"
        with open(tmp, 'w') as f:
            json.dump(results, f)
-       tmp.replace(result_dir / f"tsfm_results_worker_{wid}.json")
+       tmp.replace(result_dir / f"neuraxis_results_worker_{wid}.json")
     3. Reads with timeout retry to wait for file write completion.
     4. Retry on JSONDecodeError (file may be writing); skip on OSError (file issue).
     5. Failed reads are logged via logger.error() and skipped.

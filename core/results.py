@@ -229,7 +229,7 @@ class _ConcurrentResultBufferManager:
         """
         flush_results = {}
 
-        cache_file = self._temp_dir / "tsfm_cache_result_buffers.json"
+        cache_file = self._cache.cache_file
         if not cache_file.exists():
             return flush_results
 
