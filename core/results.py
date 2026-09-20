@@ -64,7 +64,7 @@ class _ConcurrentResultBufferManager:
             default_batch_size: Default batch size for auto-flush (default 10)
         """
         self._default_batch_size = default_batch_size
-        self._temp_dir = Path(tempfile.gettempdir()) / "neuraxis_buffers"
+        self._temp_dir = Path(tempfile.gettempdir()) / "tsfm_buffers"
         self._temp_dir.mkdir(parents=True, exist_ok=True)
         # Use ProcessSafeCache to manage buffer data (underlying portalocker file lock)
         self._cache = ProcessSafeCache(
