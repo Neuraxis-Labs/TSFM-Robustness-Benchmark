@@ -316,8 +316,12 @@ class ProcessSafeCache:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self._cache_file = self.cache_dir / f"neuraxis_cache_{cache_name}.json"
         # Use file lock to protect cross-process access
-        self._file_lock = FileLock(
-            f"cache_{cache_name}", lock_dir=self.cache_dir, timeout=10.0)
+        self._file_lock = FileLock(f"cache_{cache_name}", lock_dir=self.cache_dir, timeout=10.0)
+
+    @property
+    def cache_file(self) -> Path:
+        """Cache file path (read-only). For cross-layer use; caller must respect atomic-rename safety."""
+        return self._cache_file
 
     def get(self, key: str, default: Any = None) -> Any:
         """
@@ -391,7 +395,7 @@ class ProcessSafeCache:
     def cleanup_all(cls, cache_dir: Path | None = None):
         """Clean up all cache files (including temp files)."""
         cache_dir = Path(cache_dir or tempfile.gettempdir())
-        for pattern in ("neuraxis_cache_*.json", "neuraxis_cache_*.json.tmp"):
+        for pattern in ("neuraxis_cache_*.json", "neuraxis_cache_*.tmp"):
             for f in cache_dir.glob(pattern):
                 try:
                     f.unlink()
@@ -481,7 +485,7 @@ class ProcessSafeCounter:
     def cleanup_all(cls, counter_dir: Path | None = None):
         """Clean up all counter files (including temp files)."""
         counter_dir = Path(counter_dir or tempfile.gettempdir())
-        for pattern in ("neuraxis_counter_*.txt", "neuraxis_counter_*.txt.tmp"):
+        for pattern in ("neuraxis_counter_*.txt", "neuraxis_counter_*.tmp"):
             for f in counter_dir.glob(pattern):
                 try:
                     f.unlink()
