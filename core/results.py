@@ -72,18 +72,20 @@ class _ConcurrentResultBufferManager:
         # FileLock instance cache: Avoids recreating instances which causes atexit list bloat
         self._lock_cache: dict[str, FileLock] = {}
 
+    def _safe_key(self, file_path: str) -> str:
+        digest = hashlib.sha256(str(Path(file_path).resolve()).encode()).hexdigest()[:16]
+        return f"buffer_{Path(file_path).stem}_{digest}"
+
     def _get_lock(self, file_path: str) -> FileLock:
         """Get the FileLock instance corresponding to the file path (cached for reuse)."""
-        safe_name = Path(file_path).stem.replace("\\", "_").replace("/", "_")
-        cache_key = f"buffer_{safe_name}"
+        cache_key = self._safe_key(file_path)
         if cache_key not in self._lock_cache:
             self._lock_cache[cache_key] = FileLock(cache_key, lock_dir=self._temp_dir, timeout=10.0)
         return self._lock_cache[cache_key]
 
     def _get_cache_key(self, file_path: str) -> str:
         """Get the key name of the buffer in ProcessSafeCache."""
-        safe_name = Path(file_path).stem.replace("\\", "_").replace("/", "_")
-        return f"buffer_{safe_name}"
+        return self._safe_key(file_path)
 
     def append_and_maybe_flush(
         self,
