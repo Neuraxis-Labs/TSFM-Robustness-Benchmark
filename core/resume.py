@@ -27,16 +27,29 @@ Usage Examples:
 Author: Janesong
 Create Date: 2026/07/10, Updated on 2026/08/17.
 """
-
+import re
 from typing import Any
 
 # Rate limit keywords for detection
-RATE_LIMIT_KEYWORDS = ["429", "limit", "quota", "exceed", "rate", "too many"]
+RATE_LIMIT_PATTERNS = [
+    r"\b429\b",                                       # HTTP status code
+    r"\brate[\s_-]?limit",                            # "rate limit" / "rate-limit" / "rate_limit"
+    r"\bquota\b",                                     # generic quota errors
+    r"\binsufficient[\s_]?quota\b",                   # OpenAI: insufficient_quota (NOT covered by \bquota\b: '_'
+                                                      # is a word char, so no word boundary before 'quota')
+    r"\btoo many requests\b",
+    r"\bthrottl",                                     # intentional prefix match: throttled/throttling
+    r"\bcapacity\s+(exceeded|reached|limit|full)",
+    r"\bresource[\s_]?exhausted\b",                   # Google gRPC: RESOURCE_EXHAUSTED
+    r"\bplease\s+(slow down|try again later)\b",      # OpenAI / Anthropic friendly-wording errors
+]
+_RATE_LIMIT_RE = re.compile("|".join(f"(?:{p})" for p in RATE_LIMIT_PATTERNS), re.IGNORECASE,)
 def is_rate_limited(error_msg: str) -> bool:
     """
-    Check if error is rate-limit (429 Too Many Requests) error.
+    Check if error is a rate-limit (429 Too Many Requests) error.
 
-    This method detects rate limit errors based on common keywords in error messages returned by API providers.
+    Detects rate limit errors based on common error messages returned by
+    major LLM API providers (OpenAI, Anthropic, Google, etc.).
 
     Args:
         error_msg: Error message string
@@ -49,14 +62,19 @@ def is_rate_limited(error_msg: str) -> bool:
         True
         >>> is_rate_limited("Rate limit exceeded")
         True
+        >>> is_rate_limited("insufficient_quota: billing quota exceeded")
+        True
+        >>> is_rate_limited("RESOURCE_EXHAUSTED: gRPC call failed")
+        True
+        >>> is_rate_limited("Model output exceeds max context length")
+        False
         >>> is_rate_limited("Connection timeout")
         False
     """
     if not error_msg:
         return False
 
-    error_lower = error_msg.lower()
-    return any(k in error_lower for k in RATE_LIMIT_KEYWORDS)
+    return bool(_RATE_LIMIT_RE.search(error_msg))
 
 
 def should_skip_test(
