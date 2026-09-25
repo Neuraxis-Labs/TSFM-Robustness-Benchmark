@@ -32,11 +32,9 @@ def assert_prediction_valid(prediction: list | None,
     Assert that the prediction result is valid
     (wraps the generic length assertion with business semantics).
     """
-    assert prediction is not None, \
-        "Prediction result must not be None"
+    assert prediction is not None, "Prediction result must not be None"
     assert isinstance(prediction, list), \
-        (f"Prediction result must be a list, "
-         f"got: {type(prediction).__name__} / "
+        (f"Prediction result must be a list, got: {type(prediction).__name__}")
     generic.assert_length(prediction, min_length, max_length, label="prediction")
 
 
@@ -61,9 +59,9 @@ def assert_graceful_failure(exception: Exception,
     assert isinstance(exception, allowed), (
         f"API raised an unexpected exception type: "
         f"{type(exception).__name__}: {exception}. "
-        f"Expected one of: {[t.__name__ for t in allowed]} / "
-    )
+        f"Expected one of: {[t.__name__ for t in allowed]}")
+
     logger.info(
         f"Graceful failure (acceptable): "
-        f"{type(exception).__name__}: {exception} / "
-    )
+        f"{type(exception).__name__}: {exception}")
+
